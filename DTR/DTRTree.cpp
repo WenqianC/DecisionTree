@@ -41,7 +41,7 @@ static bool bestSplitDimension(const vector<VectorXd> & features,
     const int dim = split_param.split_dim_;
     double min_v = std::numeric_limits<double>::max();
     double max_v = std::numeric_limits<double>::min();
-    const int rand_num = tree_param.split_candidate_num_;
+    const int threshold_num = tree_param.candidate_threshold_num_;
     for (int i = 0; i<indices.size(); i++) {
         int index = indices[i];
         double v = features[index][dim];
@@ -55,11 +55,11 @@ static bool bestSplitDimension(const vector<VectorXd> & features,
     if (!(min_v < max_v)) {
         return false;
     }
-    vector<double> rnd_split_values = DTCUtil::generateRandomNumber(min_v, max_v, rand_num);
+    vector<double> rnd_split_values = DTCUtil::generateRandomNumber(min_v, max_v, threshold_num);
     
     bool is_split = false;
     double loss = std::numeric_limits<double>::max();
-    const int min_split_num = tree_param.min_split_num_;
+    const int min_split_num = tree_param.min_split_node_;
     for (int i = 0; i<rnd_split_values.size(); i++) {
         double threshold = rnd_split_values[i];
         vector<unsigned int> cur_left_indices;
@@ -105,8 +105,8 @@ bool DTRTree::configureNode(const vector<VectorXd> & features,
                             DTRNode * node)
 {
     assert(node);
-    const int min_leaf_node = tree_param_.min_leaf_node_num_;
-    const int max_depth     = tree_param_.max_depth_;
+    const int min_leaf_node = tree_param_.min_leaf_node_;
+    const int max_depth     = tree_param_.max_tree_depth_;
     const int depth = node->depth_;
     const int dim = (int)features[0].size();
     
@@ -119,6 +119,7 @@ bool DTRTree::configureNode(const vector<VectorXd> & features,
             cout<<"mean  : \n"<<node->mean_<<endl;
             cout<<"stddev: \n"<<node->stddev_<<endl;
         }
+        node->sample_num_ = (int)indices.size();
         return true;
     }
     
@@ -166,15 +167,18 @@ bool DTRTree::configureNode(const vector<VectorXd> & features,
             printf("loss is %f \n", split_param.split_loss_);
         }
         node->split_param_ = split_param;
+        node->sample_num_ = (int)indices.size();
         node->is_leaf_ = false;
         if (left_indices.size() > 0) {
             DTRNode *left_node = new DTRNode(depth + 1);
             this->configureNode(features, labels, left_indices, left_node);
+            left_node->sample_percentage_ = 1.0 * left_indices.size()/indices.size();
             node->left_child_ = left_node;
         }
         if (right_indices.size() > 0) {
             DTRNode * right_node = new DTRNode(depth + 1);
             this->configureNode(features, labels, right_indices, right_node);
+            right_node->sample_percentage_ = 1.0 * right_indices.size()/indices.size();
             node->right_child_ = right_node;
         }
     }
@@ -187,6 +191,7 @@ bool DTRTree::configureNode(const vector<VectorXd> & features,
             cout<<"mean  : \n"<<node->mean_<<endl;
             cout<<"stddev: \n"<<node->stddev_<<endl;
         }
+        node->sample_num_ = (int)indices.size();
         return true;
     }
     
@@ -198,12 +203,17 @@ const DTRTreeParameter & DTRTree::getTreeParameter(void) const
     return tree_param_;
 }
 
+void DTRTree::setTreeParameter(const DTRTreeParameter & param)
+{
+    tree_param_ = param;
+}
+
 
 bool DTRTree::predict(const Eigen::VectorXd & feature,
                       Eigen::VectorXd & pred) const
 {
     assert(root_);
-    assert(feature.size() == tree_param_.feature_dimension_);
+    assert(feature.size() == tree_param_.feature_dim_);
     return this->predict(root_, feature, pred);
 }
 

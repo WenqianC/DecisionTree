@@ -29,6 +29,8 @@ public:
     
     // split parameter
     DTRSplitParameter split_param_;
+    int sample_num_;
+    double sample_percentage_;  // sample percentage of parent node
     
     // only leaf node has probability
     VectorXd mean_;  // label
@@ -41,7 +43,12 @@ public:
         right_child_ = NULL;
         depth_ = depth;
         is_leaf_ = false;
+        sample_num_ = 0;
+        sample_percentage_ = 0.0;
     }
+    
+    static bool writeTree(const char *fileName, DTRNode * root);
+    static bool readTree(const char *fileName, DTRNode * & root);
 };
 
 

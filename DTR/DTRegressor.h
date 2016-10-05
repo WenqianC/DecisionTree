@@ -20,11 +20,15 @@ class DTRegressor
     friend class DTRegressorBuilder;
     
     vector<DTRTree* > trees_;
-    DTRTreeParameter tree_param_;
+    DTRTreeParameter reg_tree_param_;
+    
 public:
     
     bool predict(const Eigen::VectorXd & feature,
                  Eigen::VectorXd & pred) const;
+    
+    bool save(const char *fileName) const;
+    bool load(const char *fileName);
 };
 
 

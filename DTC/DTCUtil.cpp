@@ -73,6 +73,10 @@ DTCUtil::confusionMatrix(const vector<Eigen::VectorXd> & probs, const vector<uns
 bool DTCUtilIO::read_matrix(const char * file_name, vector<VectorXd> & data)
 {
     FILE *pf = fopen(file_name, "r");
+    if (!pf) {
+        printf("can not load from %s\n", file_name);
+        return false;
+    }
     assert(pf);
     int rows = 0;
     int cols = 0;
@@ -92,6 +96,29 @@ bool DTCUtilIO::read_matrix(const char * file_name, vector<VectorXd> & data)
     printf("read data: %lu %lu \n", data.size(), data[0].size());
     return true;
 }
+
+bool DTCUtilIO::save_matrix(const char * file_name, const vector<VectorXd> & data)
+{
+    assert(data.size() > 0);
+    FILE *pf = fopen(file_name, "w");
+    if (!pf) {
+        printf("can not write to %s\n", file_name);
+        return false;
+    }
+    assert(pf);
+    fprintf(pf, "%d %d\n", (int)data.size(), (int)data[0].size());
+    for (int i = 0; i<data.size(); i++) {
+        for (int j = 0; j<data[i].size(); j++) {
+            fprintf(pf, "%lf ", data[i][j]);
+            if (j == data[i].size()-1) {
+                fprintf(pf, "\n");
+            }
+        }
+    }
+    printf("save to %s\n", file_name);
+    return true;
+}
+
 bool DTCUtilIO::read_labels(const char * file_name, vector<unsigned int> & labels)
 {
     vector<Eigen::VectorXd> data;

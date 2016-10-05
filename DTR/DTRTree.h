@@ -21,6 +21,8 @@ class DTRNode;
 // decision tree regression Tree
 class DTRTree
 {
+    friend class DTRegressor;
+    
     DTRNode * root_;
     DTRTreeParameter tree_param_;
     
@@ -41,6 +43,7 @@ public:
                  Eigen::VectorXd & pred) const;
     
     const DTRTreeParameter & getTreeParameter(void) const;
+    void setTreeParameter(const DTRTreeParameter & param);
     
     
     

@@ -25,7 +25,7 @@ bool DTRegressorBuilder::buildModel(DTRegressor & model,
 {
     assert(features.size() == labels.size());
     
-    model.tree_param_ = tree_param_;
+    model.reg_tree_param_ = tree_param_;
     model.trees_.clear();
     
     const int tree_num = tree_param_.tree_num_;
