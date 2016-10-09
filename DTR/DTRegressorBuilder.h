@@ -23,7 +23,7 @@ public:
     bool buildModel(DTRegressor & model,
                     const vector<VectorXd> & features,
                     const vector<VectorXd> & labels,
-                    const char * modle_file_name = NULL) const;
+                    const char * model_file_name = NULL) const;
     
     
     

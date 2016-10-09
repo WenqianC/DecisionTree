@@ -18,17 +18,26 @@ using std::vector;
 class DTRegressor
 {
     friend class DTRegressorBuilder;
+    friend class RDTBuilder;
     
     vector<DTRTree* > trees_;
     DTRTreeParameter reg_tree_param_;
     
+    int feature_dim_;       // feature dimension
+    int label_dim_;
+    
 public:
+    DTRegressor(){feature_dim_ = 0; label_dim_ = 0;}
+    ~DTRegressor(){}
     
     bool predict(const Eigen::VectorXd & feature,
                  Eigen::VectorXd & pred) const;
     
     bool save(const char *fileName) const;
     bool load(const char *fileName);
+    
+    // for debug
+    
 };
 
 

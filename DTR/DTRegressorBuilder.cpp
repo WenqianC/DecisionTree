@@ -21,12 +21,14 @@ void DTRegressorBuilder::setTreeParameter(const DTRTreeParameter & param)
 bool DTRegressorBuilder::buildModel(DTRegressor & model,
                                     const vector<VectorXd> & features,
                                     const vector<VectorXd> & labels,
-                                    const char * modle_file_name) const
+                                    const char * model_file_name) const
 {
     assert(features.size() == labels.size());
     
     model.reg_tree_param_ = tree_param_;
-    model.trees_.clear();
+    model.trees_.clear();   // @todo release memory
+    model.feature_dim_ = (int)features.front().size();
+    model.label_dim_ = (int)labels.front().size();
     
     const int tree_num = tree_param_.tree_num_;
     for (int n = 0; n<tree_num; n++) {
@@ -55,10 +57,12 @@ bool DTRegressorBuilder::buildModel(DTRegressor & model,
         Eigen::VectorXd cv_mean_error;
         Eigen::VectorXd cv_median_error;
         DTRUtil::mean_median_error(cv_errors, cv_mean_error, cv_median_error);
-        
         cout<<"cross validation mean error: "<<cv_mean_error<<" median error: "<<cv_median_error<<endl;
+        if (model_file_name != NULL) {
+            model.save(model_file_name);
+        }
     }
-    printf("build model done %lu trees.\n", tree_num);
+    printf("build model done %lu trees.\n", model.trees_.size());
 
     return true;
 }

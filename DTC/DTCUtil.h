@@ -92,14 +92,7 @@ public:
     confusionMatrix(const vector<Eigen::VectorXd> & probs, const vector<unsigned int> & labels);
 };
 
-class DTCUtilIO
-{
-public:
-    static bool read_matrix(const char * file_name, vector<VectorXd> & data);
-    static bool save_matrix(const char * file_name, const vector<VectorXd> & data);
-    static bool read_labels(const char * file_name, vector<unsigned int> & labels);
-    
-};
+
 
   
 

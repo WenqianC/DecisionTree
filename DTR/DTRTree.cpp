@@ -213,7 +213,6 @@ bool DTRTree::predict(const Eigen::VectorXd & feature,
                       Eigen::VectorXd & pred) const
 {
     assert(root_);
-    assert(feature.size() == tree_param_.feature_dim_);
     return this->predict(root_, feature, pred);
 }
 
@@ -226,6 +225,7 @@ bool DTRTree::predict(const DTRNode * node,
         pred = node->mean_;
         return true;
     }
+    assert(node->split_param_.split_dim_ < feature.size());
     double feat = feature[node->split_param_.split_dim_];
     if (feat < node->split_param_.split_threshold_ && node->left_child_) {
         return this->predict(node->left_child_, feature, pred);

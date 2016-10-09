@@ -45,8 +45,6 @@ public:
     const DTRTreeParameter & getTreeParameter(void) const;
     void setTreeParameter(const DTRTreeParameter & param);
     
-    
-    
 private:
     bool configureNode(const vector<VectorXd> & features,
                        const vector<VectorXd> & labels,

@@ -13,7 +13,8 @@ bool DTRegressor::predict(const Eigen::VectorXd & feature,
                           Eigen::VectorXd & pred) const
 {
     assert(trees_.size() > 0);
-    pred = Eigen::VectorXd::Zero(reg_tree_param_.label_dim_);
+    assert(feature_dim_ == feature.size());
+    pred = Eigen::VectorXd::Zero(label_dim_);
     
     // average predictions from all trees
     int pred_num = 0;
@@ -41,6 +42,7 @@ bool DTRegressor::save(const char *fileName) const
         printf("Error: can not open file %s\n", fileName);
         return false;
     }
+    fprintf(pf, "%d %d\n", feature_dim_, label_dim_);
     reg_tree_param_.writeToFile(pf);
     vector<string> tree_files;
     string baseName = string(fileName);
@@ -71,6 +73,8 @@ bool DTRegressor::load(const char *fileName)
         return false;
     }
     
+    int ret_num = fscanf(pf, "%d %d", &feature_dim_, &label_dim_);
+    assert(ret_num);
     
     bool is_read = reg_tree_param_.readFromFile(pf);
     assert(is_read);

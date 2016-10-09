@@ -32,8 +32,8 @@ public:
     int candidate_dim_num_;
     int candidate_threshold_num_;    // number of split in [v_min, v_max]
     
-    int feature_dim_;       // feature dimension
-    int label_dim_;               // label dimension number
+//    int feature_dim_;       // feature dimension
+//    int label_dim_;               // label dimension number
     
     bool verbose_;
     bool verbose_leaf_;
@@ -50,15 +50,14 @@ public:
         candidate_dim_num_ = 6;
         candidate_threshold_num_ = 10;
         
-       
-        
-        feature_dim_ = 10;
-        label_dim_ = 1;
+   //     feature_dim_ = 10;
+   //     label_dim_ = 1;
         
         verbose_ = false;
         verbose_leaf_ = false;
     }
     
+    /*
     DTRTreeParameter(const int feat_dim, const int label_dim)
     {
         tree_num_ = 5;
@@ -73,9 +72,10 @@ public:
         verbose_ = false;
         verbose_leaf_ = false;
         
-        feature_dim_ = feat_dim;
-        label_dim_ = label_dim;
+   //     feature_dim_ = feat_dim;
+   //     label_dim_ = label_dim;
     }
+     */
     
     bool readFromFile(const char *fileName)
     {
@@ -94,7 +94,7 @@ public:
     {
         assert(pf);
         
-        const int param_num = 10;
+        const int param_num = 8;
         unordered_map<std::string, double> imap;
         for(int i = 0; i<param_num; i++)
         {
@@ -107,7 +107,7 @@ public:
             }
             imap[string(s)] = val;
         }
-        assert(imap.size() == 10);
+        assert(imap.size() == 8);
         
         tree_num_ = (int)imap[string("tree_num")];
         max_tree_depth_ = (int)imap[string("max_tree_depth")];
@@ -119,8 +119,8 @@ public:
         verbose_ = (bool)imap[string("verbose")];
         verbose_leaf_ = (bool)imap[string("verbose_leaf")];
         
-        feature_dim_ = (int)imap[string("feature_dim")];
-        label_dim_ = (int)imap[string("label_dim")];
+ //       feature_dim_ = (int)imap[string("feature_dim")];
+ //       label_dim_ = (int)imap[string("label_dim")];
         
         return true;
     }
@@ -137,8 +137,8 @@ public:
         fprintf(pf, "candidate_dim_num %d\n", candidate_dim_num_);
         fprintf(pf, "candidate_threshold_num %d\n", candidate_threshold_num_);
         
-        fprintf(pf, "feature_dim %d\n", feature_dim_);
-        fprintf(pf, "label_dim %d\n", label_dim_);
+  //      fprintf(pf, "feature_dim %d\n", feature_dim_);
+  //      fprintf(pf, "label_dim %d\n", label_dim_);
         
         fprintf(pf, "verbose %d\n", (int)verbose_);
         fprintf(pf, "verbose_leaf %d\n\n", (int)verbose_leaf_);
@@ -157,8 +157,8 @@ public:
         printf("candidate_dim_num %d\n", candidate_dim_num_);
         printf("candidate_threshold_num %d\n", candidate_threshold_num_);
         
-        printf("feature_dim %d\n", feature_dim_);
-        printf("label_dim %d\n", label_dim_);
+   //     printf("feature_dim %d\n", feature_dim_);
+   //     printf("label_dim %d\n", label_dim_);
         
         printf("verbose %d\n", (int)verbose_);
         printf("verbose_leaf %d\n\n", (int)verbose_leaf_);
@@ -196,8 +196,12 @@ public:
     static void mean_median_error(const vector<VectorXd> & errors,
                                   Eigen::VectorXd & mean,
                                   Eigen::VectorXd & median);
+    // foldNum: 10,
+    // foldIndex: 0, 1, 2, ... 9
+    static void cross_validation_split(const int sampleNum, const int foldNum, const int foldIndex,
+                                       vector<unsigned int> & trainingIndices, vector<unsigned> & testingIndices);
     
-    
+ //   static Eigen::VectorXd concat_vector(const vector<VectorXd> & data);
     
     
 };

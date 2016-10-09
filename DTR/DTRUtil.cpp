@@ -94,5 +94,21 @@ void DTRUtil::mean_median_error(const vector<VectorXd> & errors,
     }
 }
 
+void DTRUtil::cross_validation_split(const int sampleNum, const int foldNum, const int foldIndex,
+                                     vector<unsigned int> & trainingIndices, vector<unsigned> & testingIndices)
+{
+    int startIndex = sampleNum * foldIndex/foldNum;
+    int stopIndex  = sampleNum * (foldIndex + 1)/foldNum;
+    for (int i = 0; i<sampleNum; i++) {
+        if (i >= startIndex && i < stopIndex) {
+            testingIndices.push_back(i);
+        }
+        else {
+            trainingIndices.push_back(i);
+        }
+    }
+    assert(trainingIndices.size() + testingIndices.size() == sampleNum);
+}
+
 
 
