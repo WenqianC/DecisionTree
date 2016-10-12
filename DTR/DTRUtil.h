@@ -32,9 +32,6 @@ public:
     int candidate_dim_num_;
     int candidate_threshold_num_;    // number of split in [v_min, v_max]
     
-//    int feature_dim_;       // feature dimension
-//    int label_dim_;               // label dimension number
-    
     bool verbose_;
     bool verbose_leaf_;
     
@@ -50,32 +47,9 @@ public:
         candidate_dim_num_ = 6;
         candidate_threshold_num_ = 10;
         
-   //     feature_dim_ = 10;
-   //     label_dim_ = 1;
-        
         verbose_ = false;
         verbose_leaf_ = false;
     }
-    
-    /*
-    DTRTreeParameter(const int feat_dim, const int label_dim)
-    {
-        tree_num_ = 5;
-        max_tree_depth_ = 10;
-        
-        min_leaf_node_ = 32;
-        min_split_node_ = 8;
-        
-        candidate_dim_num_ = 6;
-        candidate_threshold_num_ = 10;
-        
-        verbose_ = false;
-        verbose_leaf_ = false;
-        
-   //     feature_dim_ = feat_dim;
-   //     label_dim_ = label_dim;
-    }
-     */
     
     bool readFromFile(const char *fileName)
     {
@@ -118,10 +92,6 @@ public:
         
         verbose_ = (bool)imap[string("verbose")];
         verbose_leaf_ = (bool)imap[string("verbose_leaf")];
-        
- //       feature_dim_ = (int)imap[string("feature_dim")];
- //       label_dim_ = (int)imap[string("label_dim")];
-        
         return true;
     }
     
@@ -136,9 +106,6 @@ public:
         
         fprintf(pf, "candidate_dim_num %d\n", candidate_dim_num_);
         fprintf(pf, "candidate_threshold_num %d\n", candidate_threshold_num_);
-        
-  //      fprintf(pf, "feature_dim %d\n", feature_dim_);
-  //      fprintf(pf, "label_dim %d\n", label_dim_);
         
         fprintf(pf, "verbose %d\n", (int)verbose_);
         fprintf(pf, "verbose_leaf %d\n\n", (int)verbose_leaf_);
