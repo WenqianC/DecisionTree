@@ -51,6 +51,9 @@ static bool bestSplitDimesion(const vector<VectorXd> & features,
             min_v = v;
         }
     }
+    if (!(min_v < max_v)) {
+        return false;
+    }
     vector<double> rnd_split_values = DTCUtil::generateRandomNumber(min_v, max_v, rand_num);
     
     bool is_split = false;
@@ -139,6 +142,7 @@ bool DTCTree::configureNode(const vector<VectorXd> & features,
             printf("leaf node depth size %d    %lu\n", node->depth_, indices.size());
             cout<<"probability: \n"<<node->prob_<<endl<<endl;;
         }
+        node->sample_num_ = (int)indices.size();
         return true;
     }
      
@@ -187,14 +191,17 @@ bool DTCTree::configureNode(const vector<VectorXd> & features,
         }
         node->split_param_ = split_param;
         node->is_leaf_ = false;
+        node->sample_num_ = (int)indices.size();
         if (left_indices.size() > 0) {
             DTCNode *left_node = new DTCNode(depth + 1);
             this->configureNode(features, labels, left_indices, left_node);
+            left_node->sample_percentage_ = 1.0 * left_indices.size()/indices.size();
             node->left_child_ = left_node;
         }
         if (right_indices.size() > 0) {
             DTCNode * right_node = new DTCNode(depth + 1);
             this->configureNode(features, labels, right_indices, right_node);
+            right_node->sample_percentage_ = 1.0 * right_indices.size()/indices.size();
             node->right_child_ = right_node;
         }
         
@@ -213,6 +220,7 @@ bool DTCTree::configureNode(const vector<VectorXd> & features,
             printf("leaf node depth size %d    %lu\n", node->depth_, indices.size());
             cout<<"probability: \n"<<node->prob_<<endl<<endl;;
         }
+        node->sample_num_ = (int)indices.size();
     }    
     return true;
 }
@@ -229,6 +237,11 @@ bool DTCTree::predict(const Eigen::VectorXd & feature,
 const DTCTreeParameter & DTCTree::getTreeParameter(void) const
 {
     return tree_param_;
+}
+
+void DTCTree::setTreeParameter(const DTCTreeParameter & param)
+{
+    tree_param_ = param;
 }
 
 

@@ -109,6 +109,8 @@ bool DTRTree::configureNode(const vector<VectorXd> & features,
     const int max_depth     = tree_param_.max_tree_depth_;
     const int depth = node->depth_;
     const int dim = (int)features[0].size();
+    const int candidate_dim_num = tree_param_.candidate_dim_num_;
+    assert(candidate_dim_num <= dim);
     
     // leaf node
     if (indices.size() < min_leaf_node || depth > max_depth) {
@@ -128,9 +130,8 @@ bool DTRTree::configureNode(const vector<VectorXd> & features,
     for (unsigned int i = 0; i<dim; i++) {
         dims.push_back(i);
     }
-    int sqrt_feat_dim = sqrt((double)dim);
     std::random_shuffle(dims.begin(), dims.end());
-    vector<unsigned int> random_dim(dims.begin(), dims.begin() + sqrt_feat_dim);
+    vector<unsigned int> random_dim(dims.begin(), dims.begin() + candidate_dim_num);
     assert(random_dim.size() > 0 && random_dim.size() <= dims.size());
     
     // split the data to left and right node

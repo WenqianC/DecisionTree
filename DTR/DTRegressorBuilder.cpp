@@ -50,7 +50,7 @@ bool DTRegressorBuilder::buildModel(DTRegressor & model,
         for (int i = 0; i<validation_indices.size(); i++) {
             const int index = validation_indices[i];
             Eigen::VectorXd pred;
-            model.predict(features[index], pred);
+            tree->predict(features[index], pred);
             cv_errors.push_back(pred - labels[index]);
         }
         
@@ -63,6 +63,6 @@ bool DTRegressorBuilder::buildModel(DTRegressor & model,
         }
     }
     printf("build model done %lu trees.\n", model.trees_.size());
-
+    
     return true;
 }

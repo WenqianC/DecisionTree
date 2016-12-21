@@ -21,6 +21,8 @@ class DTCNode;
 // decision tree classifier Tree
 class DTCTree
 {
+    friend class DTClassifer;
+    
     DTCNode * root_;
     DTCTreeParameter tree_param_;
     
@@ -40,6 +42,7 @@ public:
                  Eigen::VectorXd & prob) const;
     
     const DTCTreeParameter & getTreeParameter(void) const;
+    void setTreeParameter(const DTCTreeParameter & param);
     
     
 private:

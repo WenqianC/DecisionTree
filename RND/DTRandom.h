@@ -20,7 +20,8 @@ public:
     // out of bagging sampling, the random number generator is related to the machine time
     static void outof_bag_sampling(const unsigned int N,
                                    vector<unsigned int> & bootstrapped,
-                                   vector<unsigned int> & outof_bag);
+                                   vector<unsigned int> & outof_bag);    
+    
 };
 
 #endif /* defined(__Classifer_RF__DTRandom__) */

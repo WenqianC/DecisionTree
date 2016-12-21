@@ -26,6 +26,17 @@ public:
                     const char * model_file_name = NULL) const;
     
     
+    /*
+    bool buildAndValidateModel(DTRegressor & model,
+                               const vector<VectorXd> & features,
+                               const vector<VectorXd> & labels,
+                               
+                               const vector<VectorXd> & validate_features,
+                               const vector<VectorXd> & validate_labels,
+                               
+                               const char * model_file_name = NULL) const;
+     */
+    
     
     
 };

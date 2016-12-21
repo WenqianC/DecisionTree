@@ -36,7 +36,7 @@ void DTRUtil::mean_stddev(const vector<VectorXd> & labels,
         }
     }
     for (int j = 0; j<sigma.size(); j++) {
-        sigma[j] = sqrt(fabs(sigma[j]));
+        sigma[j] = sqrt(fabs(sigma[j])/indices.size());
     }
 }
 

@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <vector>
 #include <Eigen/Dense>
+#include "ParameterParser.h"
 
 using std::vector;
 using Eigen::VectorXd;
@@ -25,11 +26,11 @@ public:
     int min_leaf_node_num_;
     int min_split_num_;          // prevent too small node
     int split_candidate_num_;    // number of split in [v_min, v_max]
-    bool verbose_;
     
     int feature_dimension_;          // feature dimension
     int category_num_;               // category number
     
+    bool verbose_;
     
     DTCTreeParameter()
     {
@@ -55,6 +56,63 @@ public:
         
         feature_dimension_ = feat_dim;
         category_num_ = category_num;
+    }
+    
+    bool readFromFile(const char *fileName)
+    {
+        ParameterParser parser;
+        bool is_read = parser.loadParameter(fileName);
+        assert(is_read);
+        
+        parser.getIntValue("tree_num", tree_num_);
+        parser.getIntValue("max_depth", max_depth_);
+        parser.getIntValue("min_leaf_node_num", min_leaf_node_num_);
+        parser.getIntValue("min_split_num", min_split_num_);
+        parser.getIntValue("split_candidate_num", split_candidate_num_);
+        parser.getIntValue("feature_dimension", feature_dimension_);
+        parser.getIntValue("category_num", category_num_);
+        
+        int verbose = 0;
+        parser.getIntValue("verbose", verbose);
+        verbose_ = (verbose != 0);
+        return true;
+    }
+    
+    bool readFromFile(FILE *pf)
+    {
+        ParameterParser parser;
+        bool is_read = parser.readFromFile(pf);
+        assert(is_read);
+        
+        parser.getIntValue("tree_num", tree_num_);
+        parser.getIntValue("max_depth", max_depth_);
+        parser.getIntValue("min_leaf_node_num", min_leaf_node_num_);
+        parser.getIntValue("min_split_num", min_split_num_);
+        parser.getIntValue("split_candidate_num", split_candidate_num_);
+        parser.getIntValue("feature_dimension", feature_dimension_);
+        parser.getIntValue("category_num", category_num_);
+        
+        int verbose = 0;
+        parser.getIntValue("verbose", verbose);
+        verbose_ = (verbose != 0);
+        return true;
+    }
+    
+    bool writeToFile(FILE *pf)const
+    {
+        ParameterParser parser;
+        parser.setIntValue("tree_num", tree_num_);
+        parser.setIntValue("max_depth", max_depth_);
+        parser.setIntValue("min_leaf_node_num", min_leaf_node_num_);
+        parser.setIntValue("min_split_num", min_split_num_);
+        
+        parser.setIntValue("split_candidate_num", split_candidate_num_);
+        parser.setIntValue("feature_dimension", feature_dimension_);
+        parser.setIntValue("category_num", category_num_);
+        parser.setIntValue("verbose", (int)verbose_);
+        
+        parser.writeToFile(pf);
+        return true;
     }
 };
 

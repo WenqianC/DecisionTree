@@ -56,17 +56,8 @@ bool DTClassifierBuilder::buildModel(DTClassifer & model,
             cv_labels.push_back(labels[index]);
         }
         
-        Eigen::MatrixXd cv_conf = DTCUtil::confusionMatrix(cv_probs, cv_labels);       
-        
+        Eigen::MatrixXd cv_conf = DTCUtil::confusionMatrix(cv_probs, cv_labels);
         cout<<"out of bag cross validation confusion matrix: \n"<<cv_conf<<endl;
     }
-    
-    
-    
-    
-    
-    
-    
-    
     return true;
 }
