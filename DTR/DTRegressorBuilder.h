@@ -25,6 +25,16 @@ public:
                     const vector<VectorXd> & labels,
                     const char * model_file_name = NULL) const;
     
+    //features: a group of features, each group is from a single image
+    //labels  : corresponding label
+    bool buildModel(DTRegressor & model,
+                    const vector< vector<VectorXd> > & features,
+                    const vector< vector<VectorXd> > & labels,
+                    const int max_num_frames,
+                    const char * model_file_name = NULL) const;
+    
+    
+    
     
     /*
     bool buildAndValidateModel(DTRegressor & model,
@@ -36,8 +46,6 @@ public:
                                
                                const char * model_file_name = NULL) const;
      */
-    
-    
     
 };
 

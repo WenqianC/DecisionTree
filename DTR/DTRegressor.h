@@ -33,6 +33,10 @@ public:
     bool predict(const Eigen::VectorXd & feature,
                  Eigen::VectorXd & pred) const;
     
+    // return every prediction from every tree
+    bool predict(const Eigen::VectorXd & feature,
+                 vector<Eigen::VectorXd> & predictions) const;
+    
     bool save(const char *fileName) const;
     bool load(const char *fileName);
     

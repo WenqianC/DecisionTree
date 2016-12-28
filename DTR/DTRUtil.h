@@ -31,6 +31,7 @@ public:
     
     int candidate_dim_num_;
     int candidate_threshold_num_;    // number of split in [v_min, v_max]
+    double min_split_node_std_dev_;  // 0.05 meter
     
     bool verbose_;
     bool verbose_leaf_;
@@ -46,6 +47,8 @@ public:
         
         candidate_dim_num_ = 6;
         candidate_threshold_num_ = 10;
+        
+        min_split_node_std_dev_ = INT_MAX;
         
         verbose_ = false;
         verbose_leaf_ = false;
@@ -68,7 +71,7 @@ public:
     {
         assert(pf);
         
-        const int param_num = 8;
+        const int param_num = 9;
         unordered_map<std::string, double> imap;
         for(int i = 0; i<param_num; i++)
         {
@@ -81,7 +84,7 @@ public:
             }
             imap[string(s)] = val;
         }
-        assert(imap.size() == 8);
+        assert(imap.size() == param_num);
         
         tree_num_ = (int)imap[string("tree_num")];
         max_tree_depth_ = (int)imap[string("max_tree_depth")];
@@ -89,6 +92,7 @@ public:
         min_split_node_ = (int)imap[string("min_split_node")];
         candidate_dim_num_ = (int)imap[string("candidate_dim_num")];
         candidate_threshold_num_ = (int)imap[string("candidate_threshold_num")];
+        min_split_node_std_dev_ = (double)imap[string("min_split_node_std_dev")];
         
         verbose_ = (bool)imap[string("verbose")];
         verbose_leaf_ = (bool)imap[string("verbose_leaf")];
@@ -106,6 +110,7 @@ public:
         
         fprintf(pf, "candidate_dim_num %d\n", candidate_dim_num_);
         fprintf(pf, "candidate_threshold_num %d\n", candidate_threshold_num_);
+        fprintf(pf, "min_split_node_std_dev %f\n", min_split_node_std_dev_);
         
         fprintf(pf, "verbose %d\n", (int)verbose_);
         fprintf(pf, "verbose_leaf %d\n\n", (int)verbose_leaf_);
@@ -124,8 +129,7 @@ public:
         printf("candidate_dim_num %d\n", candidate_dim_num_);
         printf("candidate_threshold_num %d\n", candidate_threshold_num_);
         
-   //     printf("feature_dim %d\n", feature_dim_);
-   //     printf("label_dim %d\n", label_dim_);
+        printf("min_split_node_std_dev %f\n", min_split_node_std_dev_);
         
         printf("verbose %d\n", (int)verbose_);
         printf("verbose_leaf %d\n\n", (int)verbose_leaf_);

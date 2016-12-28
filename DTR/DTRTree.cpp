@@ -110,13 +110,28 @@ bool DTRTree::configureNode(const vector<VectorXd> & features,
     const int depth = node->depth_;
     const int dim = (int)features[0].size();
     const int candidate_dim_num = tree_param_.candidate_dim_num_;
+    const double min_split_stddev = tree_param_.min_split_node_std_dev_;
     assert(candidate_dim_num <= dim);
     
     // leaf node
+    bool reach_leaf = false;
     if (indices.size() < min_leaf_node || depth > max_depth) {
+        reach_leaf = true;
+    }
+    
+    // check standard deviation
+    if (reach_leaf == false && depth > max_depth/2) {
+        double variance = DTRUtil::spatial_variance(labels, indices);
+        double std_dev = sqrt(variance/indices.size());
+        if (std_dev < min_split_stddev) {
+            reach_leaf = true;
+        }
+    }    
+    // satisfy leaf node
+    if (reach_leaf) {
         node->is_leaf_ = true;
         DTRUtil::mean_stddev(labels, indices, node->mean_, node->stddev_);
-        if (tree_param_.verbose_) {
+        if (tree_param_.verbose_leaf_) {
             printf("leaf node depth size %d    %lu\n", node->depth_, indices.size());
             cout<<"mean  : \n"<<node->mean_<<endl;
             cout<<"stddev: \n"<<node->stddev_<<endl;
@@ -187,7 +202,7 @@ bool DTRTree::configureNode(const vector<VectorXd> & features,
     {
         node->is_leaf_ = true;
         DTRUtil::mean_stddev(labels, indices, node->mean_, node->stddev_);
-        if (tree_param_.verbose_) {
+        if (tree_param_.verbose_leaf_) {
             printf("leaf node depth size %d    %lu\n", node->depth_, indices.size());
             cout<<"mean  : \n"<<node->mean_<<endl;
             cout<<"stddev: \n"<<node->stddev_<<endl;

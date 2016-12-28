@@ -33,6 +33,22 @@ bool DTRegressor::predict(const Eigen::VectorXd & feature,
     return true;
 }
 
+bool DTRegressor::predict(const Eigen::VectorXd & feature,
+                          vector<Eigen::VectorXd> & predictions) const
+{
+    assert(trees_.size() > 0);
+    assert(feature_dim_ == feature.size());
+    
+    for (int i = 0; i<trees_.size(); i++) {
+        Eigen::VectorXd cur_pred;
+        bool is_pred = trees_[i]->predict(feature, cur_pred);
+        if (is_pred) {
+            predictions.push_back(cur_pred);
+        }
+    }
+    return predictions.size() == trees_.size();
+}
+
 bool DTRegressor::save(const char *fileName) const
 {
     assert(trees_.size() > 0);
