@@ -45,6 +45,8 @@ public:
     const DTRTreeParameter & getTreeParameter(void) const;
     void setTreeParameter(const DTRTreeParameter & param);
     
+    int leafNodeNumber(void) const;
+    
 private:
     bool configureNode(const vector<VectorXd> & features,
                        const vector<VectorXd> & labels,
@@ -55,6 +57,8 @@ private:
     bool predict(const DTRNode * node,
                  const Eigen::VectorXd & feature,
                  Eigen::VectorXd & pred) const;
+    
+    void leafNodeNumber(const DTRNode * node, int & num) const;
     
     
 };

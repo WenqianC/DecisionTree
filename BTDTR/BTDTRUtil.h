@@ -1,13 +1,13 @@
 //
-//  DTRUtil.h
-//  Classifer_RF
+//  BTDTRUtil.h
+//  RGBD_RF
 //
-//  Created by jimmy on 2016-10-03.
+//  Created by jimmy on 2016-12-29.
 //  Copyright (c) 2016 Nowhere Planet. All rights reserved.
 //
 
-#ifndef __Classifer_RF__DTRUtil__
-#define __Classifer_RF__DTRUtil__
+#ifndef __RGBD_RF__BTDTRUtil__
+#define __RGBD_RF__BTDTRUtil__
 
 #include <stdio.h>
 #include <vector>
@@ -16,63 +16,53 @@
 #include <string>
 
 using std::vector;
-using std::unordered_map;
 using std::string;
+using Eigen::VectorXf;
 using Eigen::VectorXd;
 
-class DTRTreeParameter
+class BTDTRTreeParameter
 {
 public:
     int tree_num_;               // number of trees
     int max_tree_depth_;         // tree max depth
+    int max_balanced_depth_;     // 0 - max_balanced_tree_depth, encourage balanced tree instead of smaller entropy
+    int max_sample_num_;         // select randomly sampled points intead of all samples to estimate optimal split value
     
     int min_leaf_node_;          // leaf node  sample number
     int min_split_node_;         // internal node sample number
     
     int candidate_dim_num_;
     int candidate_threshold_num_;    // number of split in [v_min, v_max]
-    double min_split_node_std_dev_;  // 0.05 meter
+    double min_split_node_std_dev_;  // 0.1 meter
+    
     
     bool verbose_;
     bool verbose_leaf_;
     
-    
-    DTRTreeParameter()
+    BTDTRTreeParameter()
     {
         tree_num_ = 5;
         max_tree_depth_ = 10;
+        max_balanced_depth_ = 5;
+        max_sample_num_ = 1000;
         
         min_leaf_node_ = 32;
         min_split_node_ = 8;
         
         candidate_dim_num_ = 6;
-        candidate_threshold_num_ = 10;
-        
-        min_split_node_std_dev_ = INT_MAX;
+        candidate_threshold_num_ = 10;        
+        min_split_node_std_dev_ = 0.1;       
         
         verbose_ = false;
         verbose_leaf_ = false;
-    }
-    
-    bool readFromFile(const char *fileName)
-    {
-        FILE *pf = fopen(fileName, "r");
-        if (!pf) {
-            printf("can not read from %s \n", fileName);
-            return false;
-        }
-        
-        this->readFromFile(pf);
-        fclose(pf);
-        return true;
     }
     
     bool readFromFile(FILE *pf)
     {
         assert(pf);
         
-        const int param_num = 9;
-        unordered_map<std::string, double> imap;
+        const int param_num = 11;
+        std::unordered_map<std::string, double> imap;
         for(int i = 0; i<param_num; i++)
         {
             char s[1024] = {NULL};
@@ -88,6 +78,10 @@ public:
         
         tree_num_ = (int)imap[string("tree_num")];
         max_tree_depth_ = (int)imap[string("max_tree_depth")];
+        max_balanced_depth_ = (int)imap[string("max_balanced_depth")];
+        max_sample_num_ = (int)imap[string("max_sample_num")];
+        
+        
         min_leaf_node_ = (int)imap[string("min_leaf_node")];
         min_split_node_ = (int)imap[string("min_split_node")];
         candidate_dim_num_ = (int)imap[string("candidate_dim_num")];
@@ -104,6 +98,8 @@ public:
         assert(pf);
         fprintf(pf, "tree_num %d\n", tree_num_);
         fprintf(pf, "max_tree_depth %d\n", max_tree_depth_);
+        fprintf(pf, "max_balanced_depth %d\n", max_balanced_depth_);
+        fprintf(pf, "max_sample_num %d\n", max_sample_num_);
         
         fprintf(pf, "min_leaf_node %d\n", min_leaf_node_);
         fprintf(pf, "min_split_node %d\n", min_split_node_);
@@ -119,32 +115,19 @@ public:
     
     void printSelf() const
     {
-        printf("RGB tree parameters:\n");
-        printf("tree_num %d\n", tree_num_);
-        printf("max_tree_depth %d\n", max_tree_depth_);
-        
-        printf("min_leaf_node %d\n", min_leaf_node_);
-        printf("min_split_node %d\n", min_split_node_);
-        
-        printf("candidate_dim_num %d\n", candidate_dim_num_);
-        printf("candidate_threshold_num %d\n", candidate_threshold_num_);
-        
-        printf("min_split_node_std_dev %f\n", min_split_node_std_dev_);
-        
-        printf("verbose %d\n", (int)verbose_);
-        printf("verbose_leaf %d\n\n", (int)verbose_leaf_);
+        writeToFile(stdout);
     }
 
 };
 
-class DTRSplitParameter
+class BTDTRSplitParameter
 {
 public:
     int split_dim_;
-    double split_threshold_;
-    double split_loss_;        // spatial variance
+    float split_threshold_;
+    float split_loss_;        // spatial variance
     
-    DTRSplitParameter()
+    BTDTRSplitParameter()
     {
         split_dim_ = 0;
         split_threshold_ = 0.0;
@@ -152,29 +135,30 @@ public:
     }
 };
 
-class DTRUtil
+
+class BTDTRUtil
 {
 public:
-    static void mean_stddev(const vector<VectorXd> & labels,
-                            const vector<unsigned int> & indices,
-                            VectorXd & mean, VectorXd & sigma);
+    template <class T>
+    static double spatial_variance(const vector<T> & labels, const vector<unsigned int> & indices);
     
-    // spatial variance loss
-    static double spatial_variance(const vector<VectorXd> & labels,
-                                   const vector<unsigned int> & indices);
+    template <class T>
+    static void mean_stddev(const vector<T> & labels, const vector<unsigned int> & indices, T & mean, T & sigma);
+    
+    
+    template <class T>
+    static T mean(const vector<T> & data, const vector<unsigned int> & indices);
     
     // median: separate channel
-    static void mean_median_error(const vector<VectorXd> & errors,
-                                  Eigen::VectorXd & mean,
-                                  Eigen::VectorXd & median);
-    // foldNum: 10,
-    // foldIndex: 0, 1, 2, ... 9
-    static void cross_validation_split(const int sampleNum, const int foldNum, const int foldIndex,
-                                       vector<unsigned int> & trainingIndices, vector<unsigned> & testingIndices);    
+    template <class T>
+    static void mean_median_error(const vector<T> & errors,
+                                  T & mean,
+                                  T & median);
+    
+    static double inbalance_loss(const int leftNodeSize, const int rightNodeSize);
+    
 };
 
 
 
-
-
-#endif /* defined(__Classifer_RF__DTRUtil__) */
+#endif /* defined(__RGBD_RF__BTDTRUtil__) */

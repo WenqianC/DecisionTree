@@ -224,6 +224,29 @@ void DTRTree::setTreeParameter(const DTRTreeParameter & param)
     tree_param_ = param;
 }
 
+int DTRTree::leafNodeNumber(void) const
+{
+    assert(root_);
+    int leaf_node_num = 0;
+    this->leafNodeNumber(root_, leaf_node_num);
+    return leaf_node_num;
+}
+
+void DTRTree::leafNodeNumber(const DTRNode * node, int & num) const
+{
+    if (node->is_leaf_) {
+        num++;
+        return;
+    }
+    
+    if (node->left_child_) {
+        this->leafNodeNumber(node->left_child_, num);
+    }
+    if (node->right_child_) {
+        this->leafNodeNumber(node->right_child_, num);
+    }
+}
+
 
 bool DTRTree::predict(const Eigen::VectorXd & feature,
                       Eigen::VectorXd & pred) const

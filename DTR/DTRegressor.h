@@ -17,6 +17,7 @@ using std::vector;
 
 class DTRegressor
 {
+public:
     friend class DTRegressorBuilder;
     friend class RDTBuilder;
     

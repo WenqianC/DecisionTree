@@ -8,6 +8,7 @@
 
 #include "DTRandom.h"
 #include "vnl_random.h"
+#include <cassert>
 
 void DTRandom::outof_bag_sampling(const unsigned int N,
                                   vector<unsigned int> & bootstrapped,
@@ -27,4 +28,18 @@ void DTRandom::outof_bag_sampling(const unsigned int N,
             outof_bag.push_back(i);
         }
     }
+}
+
+vector<double>
+DTRandom::generateRandomNumber(const double min_v, const double max_v, int num)
+{
+    assert(min_v < max_v);
+    
+    vector<double> values;
+    vnl_random rnd;
+    for (int i = 0; i<num; i++) {
+        double v = rnd.drand32(min_v, max_v);
+        values.push_back(v);
+    }
+    return values;
 }
