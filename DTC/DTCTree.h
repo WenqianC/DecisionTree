@@ -41,6 +41,9 @@ public:
     bool predict(const Eigen::VectorXd & feature,
                  Eigen::VectorXd & prob) const;
     
+    bool predict(const Eigen::VectorXd & feature,
+                 unsigned int & pred) const;
+    
     const DTCTreeParameter & getTreeParameter(void) const;
     void setTreeParameter(const DTCTreeParameter & param);
     

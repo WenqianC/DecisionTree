@@ -234,6 +234,18 @@ bool DTCTree::predict(const Eigen::VectorXd & feature,
     return this->predict(root_, feature, prob);
 }
 
+bool DTCTree::predict(const Eigen::VectorXd & feature,
+                      unsigned int & pred) const
+{
+    Eigen::VectorXd prob;
+    bool isPred = this->predict(feature, prob);
+    if (!isPred) {
+        return false;
+    }
+    prob.maxCoeff(&pred);
+    return true;    
+}
+
 const DTCTreeParameter & DTCTree::getTreeParameter(void) const
 {
     return tree_param_;

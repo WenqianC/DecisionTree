@@ -187,3 +187,19 @@ bool DTUtil_IO::read_files(const char *file_name, vector<string> & files)
     return true;
 }
 
+bool DTUtil_IO::write_files(const char *file_name, const vector<string>& files)
+{
+    FILE *pf = fopen(file_name, "w");
+    if (!pf) {
+        printf("can not write a file %s\n", file_name);
+        return false;
+    }
+    for (int i = 0; i<files.size(); i++) {
+        fprintf(pf, "%s\n", files[i].c_str());
+    }
+    printf("write %lu lines\n", files.size());
+    fclose(pf);
+    
+    return true;
+}
+

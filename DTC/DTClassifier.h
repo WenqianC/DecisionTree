@@ -27,6 +27,9 @@ public:
     bool predict(const Eigen::VectorXd & feature,
                  Eigen::VectorXd & prob) const;
     
+    bool predict(const Eigen::VectorXd & feature,
+                 unsigned int & pred);
+    
     bool save(const char *fileName) const;
     bool load(const char *fileName);
 };

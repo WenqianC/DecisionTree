@@ -288,9 +288,46 @@ bool BTDTRTree::predict(const Eigen::VectorXf & feature,
     DistanceType dist = 0.0;
     result.copy(&index, &dist, 1, false);
     
-    pred = leaf_nodes_[index]->label_mean_;    
+    pred = leaf_nodes_[index]->label_mean_;
+    return true;
+}
+
+bool BTDTRTree::predict(const Eigen::VectorXf & feature,
+                        const int maxCheck,
+                        VectorXf & pred,
+                        float & dist)
+{
+    assert(root_);
     
+    int checkCount = 0;
+    float epsError = 1.0;
+    const int knn = 1;
     
+    BranchSt branch;
+    flann::Heap<BranchSt> * heap = new flann::Heap<BranchSt>(leaf_node_num_);  // why use so large heap
+    flann::DynamicBitset checked(leaf_node_num_);
+    
+    flann::KNNResultSet2<DistanceType> result(knn); // only keep the nearest one
+    const ElementType *vec = feature.data();
+    
+    // search tree down to leaf
+    this->searchLevel(result, vec, root_, 0, checkCount, maxCheck, epsError, heap, checked);
+    
+    while (heap->popMin(branch) &&
+           (checkCount < maxCheck || !result.full())) {
+        assert(branch.node);
+        this->searchLevel(result, vec, branch.node, branch.mindist, checkCount, maxCheck, epsError, heap, checked);
+    }
+    
+    delete heap;
+    assert(result.size() == knn);
+    
+    size_t index = 0;
+    DistanceType distance;
+    result.copy(&index, &distance, 1, false);
+    
+    pred = leaf_nodes_[index]->label_mean_;
+    dist = (float)distance;
     return true;
 }
 

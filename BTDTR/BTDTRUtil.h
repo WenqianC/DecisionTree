@@ -57,6 +57,19 @@ public:
         verbose_leaf_ = false;
     }
     
+    bool readFromFile(const char *fileName)
+    {
+        FILE *pf = fopen(fileName, "r");
+        if (!pf) {
+            printf("can not read from %s \n", fileName);
+            return false;
+        }
+        
+        this->readFromFile(pf);
+        fclose(pf);
+        return true;
+    }
+    
     bool readFromFile(FILE *pf)
     {
         assert(pf);

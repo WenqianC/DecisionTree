@@ -67,5 +67,23 @@ DTCUtil::confusionMatrix(const vector<Eigen::VectorXd> & probs, const vector<uns
     return confusion;
 }
 
+Eigen::MatrixXd
+DTCUtil::confusionMatrix(const vector<unsigned int> & preds, const vector<unsigned int> & labels,
+                         const int category_num,
+                         bool normalize)
+{
+    assert(preds.size() == labels.size());
+    assert(category_num > 0);
+    
+    Eigen::MatrixXd confusion = Eigen::MatrixXd::Zero(category_num, category_num);
+    for (int i = 0; i<preds.size(); i++) {
+        confusion(labels[i], preds[i]) += 1.0;
+    }
+    if (normalize) {
+        confusion = 1.0 / preds.size() * confusion;
+    }
+    return confusion;
+}
+
 
 

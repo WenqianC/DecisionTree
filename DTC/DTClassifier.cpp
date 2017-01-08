@@ -28,6 +28,18 @@ bool DTClassifer::predict(const Eigen::VectorXd & feature,
     return true;
 }
 
+bool DTClassifer::predict(const Eigen::VectorXd & feature,
+                          unsigned int & pred)
+{
+    Eigen::VectorXd prob;
+    bool isPred = this->predict(feature, prob);
+    if (!isPred) {
+        return false;
+    }
+    prob.maxCoeff(&pred);
+    return true;
+}
+
 bool DTClassifer::save(const char *fileName) const
 {
     assert(trees_.size() > 0);

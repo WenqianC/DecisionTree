@@ -28,9 +28,7 @@ public:
     
 public:
     BTDTRegressor(){feature_dim_ = 0; label_dim_ = 0;}
-    ~BTDTRegressor(){}
-    
-    
+    ~BTDTRegressor(){}    
     
     bool predict(const Eigen::VectorXf & feature,
                  const int maxCheck,
@@ -40,6 +38,13 @@ public:
     bool predict(const Eigen::VectorXf & feature,
                  const int maxCheck,
                  vector<Eigen::VectorXf> & predictions) const;
+    
+    // return every prediction and distance from every tree
+    bool predict(const Eigen::VectorXf & feature,
+                 const int maxCheck,
+                 vector<Eigen::VectorXf> & predictions,
+                 vector<float> & dists) const;
+    
     
     bool save(const char *fileName) const;
     bool load(const char *fileName);

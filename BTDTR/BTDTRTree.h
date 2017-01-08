@@ -66,8 +66,6 @@ public:
         
         std::copy(other.leaf_nodes_.begin(), other.leaf_nodes_.end(), leaf_nodes_.begin());
     }
-
-    
     
     // features:
     // labels: regression label
@@ -81,13 +79,17 @@ public:
                  const int maxCheck,
                  Eigen::VectorXf & pred) const;
     
+    bool predict(const Eigen::VectorXf & feature,
+                 const int maxCheck,
+                 VectorXf & pred,
+                 float & dist);
+    
     // each row is a descriptor
     void getLeafNodeDescriptor(Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> & data);
     void setLeafNodeDescriptor(const Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> & data);
     
     const BTDTRTreeParameter & getTreeParameter(void) const;
-    void setTreeParameter(const BTDTRTreeParameter & param);
-   
+    void setTreeParameter(const BTDTRTreeParameter & param);   
     
 private:
     // split node into left and right subtree

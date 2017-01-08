@@ -57,6 +57,30 @@ bool BTDTRegressor::predict(const Eigen::VectorXf & feature,
     return predictions.size() == trees_.size();
 }
 
+bool BTDTRegressor::predict(const Eigen::VectorXf & feature,
+                            const int maxCheck,
+                            vector<Eigen::VectorXf> & predictions,
+                            vector<float> & dists) const
+{
+    assert(trees_.size() > 0);
+    assert(feature_dim_ == feature.size());
+    assert(predictions.size() == 0);
+    assert(dists.size() == 0);
+    
+    for (int i = 0; i<trees_.size(); i++) {
+        Eigen::VectorXf cur_pred;
+        float dist;
+        bool is_pred = trees_[i]->predict(feature, maxCheck, cur_pred, dist);
+        if (is_pred) {
+            predictions.push_back(cur_pred);
+            dists.push_back(dist);
+        }
+    }
+    assert(predictions.size() == dists.size());
+    
+    return predictions.size() == trees_.size();
+}
+
 bool BTDTRegressor::save(const char *fileName) const
 {
     assert(trees_.size() > 0);

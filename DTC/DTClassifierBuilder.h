@@ -16,6 +16,7 @@
 class DTClassifierBuilder
 {
 private:
+    
     DTCTreeParameter tree_param_;
     
 public:
@@ -25,6 +26,14 @@ public:
                     const vector<VectorXd> & features,
                     const vector<unsigned int> & labels,
                     const char * modle_file_name = NULL) const;
+    
+    //features: a group of features, each group is from a single image
+    //labels  : corresponding label
+    bool buildModel(DTClassifer & model,
+                    const vector< vector<VectorXd> > & features,
+                    const vector< vector<unsigned int> > & labels,
+                    const int max_num_frames,
+                    const char * model_file_name = NULL) const;
     
     
     

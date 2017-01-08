@@ -35,6 +35,7 @@ public:
     static bool read_fn_gd_preds(const char *file_name, vector<int> & fns, vector<unsigned int> & gds,  vector<unsigned int> & preds);
     
     static bool read_files(const char *file_name, vector<string> & files);
+    static bool write_files(const char *file_name, const vector<string>& files);
     
     //
     template<class T>

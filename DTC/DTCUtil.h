@@ -12,11 +12,14 @@
 #include <stdio.h>
 #include <vector>
 #include <Eigen/Dense>
+#include <iostream>
 #include "ParameterParser.h"
 
 using std::vector;
 using Eigen::VectorXd;
 using Eigen::MatrixXd;
+using std::cout;
+using std::endl;
 
 class DTCTreeParameter
 {
@@ -114,6 +117,18 @@ public:
         parser.writeToFile(pf);
         return true;
     }
+    
+    friend std::ostream& operator <<(std::ostream& os, const DTCTreeParameter & p)
+    {        
+        os<<"tree number: "<<p.tree_num_<<endl;
+        os<<"max_depth  : "<<p.max_depth_<<endl;
+        os<<"min_leaf_node: "<<p.min_leaf_node_num_<<endl;
+        os<<"min_split_num: "<<p.min_split_num_<<endl;
+        os<<"split_candidate_num: "<<p.split_candidate_num_<<endl;
+        os<<"feature_dimension: "<<p.feature_dimension_<<endl;
+        os<<"category_num: "<<p.category_num_<<endl;
+        return os;
+    }
 };
 
 class DTCSplitParameter
@@ -148,6 +163,12 @@ public:
     // confusion matrix of predictions
     static Eigen::MatrixXd
     confusionMatrix(const vector<Eigen::VectorXd> & probs, const vector<unsigned int> & labels);
+    
+    // confusion matrix of predictions
+    // dim: category number
+    static Eigen::MatrixXd
+    confusionMatrix(const vector<unsigned int> & preds, const vector<unsigned int> & labels,
+                    const int category_num, bool normalize = false);
 };
 
 
