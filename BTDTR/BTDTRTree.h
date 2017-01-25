@@ -40,14 +40,13 @@ class BTDTRTree
     typedef BTDTRNode* NodePtr;
     typedef BranchStruct<NodePtr, DistanceType > BranchSt;
     typedef BranchSt* Branch;
- 
-public:  // for test only
+
     
     BTDTRNode * root_;
     BTDTRTreeParameter tree_param_;
     
     Distance distance_;   // the distance functor
-    int leaf_node_num_;
+    int leaf_node_num_;   // total leaf node number
     vector<NodePtr> leaf_nodes_;   // leaf node for back tracking
     
     

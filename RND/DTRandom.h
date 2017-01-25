@@ -14,8 +14,21 @@
 
 using std::vector;
 
+class vnl_random;
+
 class DTRandom
 {
+    vnl_random* rnd_generator_;
+public:
+    DTRandom();
+    ~DTRandom();
+    
+    double getRandomNumber(const double min_v, const double max_v) const;
+    
+    vector<double> getRandomNumbers(const double min_v, const double max_v, int num) const;
+    
+    
+    
 public:
     // out of bagging sampling, the random number generator is related to the machine time
     static void outof_bag_sampling(const unsigned int N,
@@ -24,6 +37,9 @@ public:
     
     static vector<double>
     generateRandomNumber(const double min_v, const double max_v, int num);
+    
+    // generate one random number
+    static double randomNumber(const double min_v, const double max_v);
     
 };
 

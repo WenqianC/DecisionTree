@@ -49,8 +49,6 @@ public:
     bool save(const char *fileName) const;
     bool load(const char *fileName);
     
-    // for debug
-    
 };
 
 

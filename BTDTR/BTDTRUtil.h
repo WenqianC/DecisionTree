@@ -130,7 +130,6 @@ public:
     {
         writeToFile(stdout);
     }
-
 };
 
 class BTDTRSplitParameter
@@ -158,9 +157,15 @@ public:
     template <class T>
     static void mean_stddev(const vector<T> & labels, const vector<unsigned int> & indices, T & mean, T & sigma);
     
+    template <class T>
+    static void mean_stddev(const vector<T>& labels, T & mean, T & sigma);
+    
     
     template <class T>
     static T mean(const vector<T> & data, const vector<unsigned int> & indices);
+    
+    template <class T>
+    static T mean(const vector<T> & data);
     
     // median: separate channel
     template <class T>

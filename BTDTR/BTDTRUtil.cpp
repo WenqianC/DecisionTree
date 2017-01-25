@@ -68,6 +68,35 @@ void BTDTRUtil::mean_stddev(const vector<T> & labels, const vector<unsigned int>
 }
 
 template <class T>
+void BTDTRUtil::mean_stddev(const vector<T>& labels, T & mean, T & sigma)
+{
+    assert(labels.size() > 0);
+    
+    // mean value
+    mean = T::Zero(labels[0].size());
+    for (int i = 0; i<labels.size(); i++) {
+        mean += labels[i];
+    }
+    mean /= labels.size();
+    
+    sigma = T::Zero(labels[0].size());
+    if (labels.size() == 1) {
+        return;
+    }
+    
+    // standard deviation
+    for (int i = 0; i<labels.size(); i++) {
+        T dif = labels[i] - mean;
+        for (int j = 0; j<sigma.size(); j++) {
+            sigma[j] += dif[j] * dif[j];
+        }
+    }
+    for (int j = 0; j<sigma.size(); j++) {
+        sigma[j] = sqrt(fabs(sigma[j])/labels.size());
+    }
+}
+
+template <class T>
 T BTDTRUtil::mean(const vector<T> & data, const vector<unsigned int> & indices)
 {
     assert(indices.size() > 0);
@@ -81,6 +110,19 @@ T BTDTRUtil::mean(const vector<T> & data, const vector<unsigned int> & indices)
     }
     m /= indices.size();
     
+    return m;
+}
+
+template <class T>
+T BTDTRUtil::mean(const vector<T> & data)
+{
+    assert(data.size() > 0);
+    
+    T m = T::Zero(data[0].size());
+    for (int i = 0; i<data.size(); i++) {
+        m += data[i];
+    }
+    m /= data.size();
     return m;
 }
 
@@ -125,7 +167,13 @@ template double BTDTRUtil::spatial_variance(const vector<Eigen::VectorXf> & labe
 
 template void BTDTRUtil::mean_stddev(const vector<Eigen::VectorXf> & labels, const vector<unsigned int> & indices, Eigen::VectorXf & mean, Eigen::VectorXf & sigma);
 
+template void BTDTRUtil::mean_stddev(const vector<Eigen::VectorXf>& labels, Eigen::VectorXf & mean, Eigen::VectorXf & sigma);
+
+template void BTDTRUtil::mean_stddev(const vector<Eigen::Vector3f>& labels, Eigen::Vector3f & mean, Eigen::Vector3f & sigma);
+
 template Eigen::VectorXf BTDTRUtil::mean(const vector<Eigen::VectorXf> & data, const vector<unsigned int> & indices);
+
+template Eigen::VectorXf BTDTRUtil::mean(const vector<Eigen::VectorXf> & data);
 
 template void  BTDTRUtil::mean_median_error(const vector<Eigen::VectorXf> & errors, Eigen::VectorXf & mean, Eigen::VectorXf & median);
 
