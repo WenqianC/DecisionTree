@@ -10,7 +10,7 @@
 #include <iostream>
 #include "cvxImage_310.hpp"
 #include <string>
-#include "CvxIO.hpp"
+#include "cvxIO.hpp"
 #include "ms7ScenesUtil.hpp"
 #include "bt_rnd_regressor_builder.h"
 #include "bt_rnd_regressor.h"
@@ -57,7 +57,6 @@ int main(int argc, const char * argv[])
     BTRNDTreeParameter tree_param;
     bool is_read = tree_param.readFromFile(tree_param_file);
     assert(is_read);
-    tree_param.printSelf();
     if (tree_param.is_use_depth_) {
         printf("Note: depth is used ...................................................\n");
     }

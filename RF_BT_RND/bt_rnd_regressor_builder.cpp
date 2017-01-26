@@ -83,6 +83,7 @@ bool BTRNDRegressorBuilder::buildModel(Regressor& model,
     assert(rgb_img_files.size() == depth_img_files.size());
     assert(rgb_img_files.size() == pose_files.size());
     
+    dataset_param_.printSelf();
     tree_param_.printSelf();
     
     const int total_frame_num = (int)rgb_img_files.size();
@@ -233,6 +234,7 @@ bool BTRNDRegressorBuilder::testValidataionError(const BTRNDTree & tree,
     
     vector<int> backtracking;
     backtracking.push_back(1);
+    backtracking.push_back(4);
     backtracking.push_back(max_check/2);
     backtracking.push_back(max_check);
     // sample from selected frames

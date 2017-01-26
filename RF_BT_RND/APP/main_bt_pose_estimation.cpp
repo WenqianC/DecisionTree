@@ -13,7 +13,7 @@
 #include "cvxIO.hpp"
 #include "cvxPoseEstimation.hpp"
 #include "ms7ScenesUtil.hpp"
-#include "RGBGUtil.hpp"
+#include "dataset_param.h"
 
 
 using namespace::std;

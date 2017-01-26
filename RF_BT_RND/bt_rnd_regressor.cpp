@@ -72,6 +72,7 @@ bool BTRNDRegressor::save(const char *fileName) const
         return false;
     }
     fprintf(pf, "%d\n", label_dim_);
+    dataset_param_.writeToFile(pf);
     reg_tree_param_.writeToFile(pf);
     vector<string> tree_files;
     string baseName = string(fileName);
@@ -123,7 +124,11 @@ bool BTRNDRegressor::load(const char *fileName)
     int ret_num = fscanf(pf, "%d", &label_dim_);
     assert(ret_num == 1);
     
-    bool is_read = reg_tree_param_.readFromFile(pf);
+    bool is_read = dataset_param_.readFromFile(pf);
+    assert(is_read);
+    dataset_param_.printSelf();
+    
+    is_read = reg_tree_param_.readFromFile(pf);
     assert(is_read);
     reg_tree_param_.printSelf();
     

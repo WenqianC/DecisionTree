@@ -12,7 +12,7 @@
 #include "cvxUtil.hpp"
 #include "BTDTRUtil.h"
 #include <iostream>
-#include "RGBGUtil.hpp"  // random RGBD feature specific
+
 
 using std::cout;
 using std::endl;
