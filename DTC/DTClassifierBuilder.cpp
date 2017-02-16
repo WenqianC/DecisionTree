@@ -21,7 +21,7 @@ void DTClassifierBuilder::setTreeParameter(const DTCTreeParameter & param)
 bool DTClassifierBuilder::buildModel(DTClassifer & model,
                                      const vector<VectorXd> & features,
                                      const vector<unsigned int> & labels,
-                                     const char * modle_file_name) const
+                                     const char * model_file_name) const
 {
     assert(features.size() == labels.size());
     
@@ -58,6 +58,9 @@ bool DTClassifierBuilder::buildModel(DTClassifer & model,
         
         Eigen::MatrixXd cv_conf = DTCUtil::confusionMatrix(cv_probs, cv_labels);
         cout<<"out of bag cross validation confusion matrix: \n"<<cv_conf<<endl;
+        if (model_file_name != NULL) {
+            model.save(model_file_name);
+        }
     }
     return true;
 }

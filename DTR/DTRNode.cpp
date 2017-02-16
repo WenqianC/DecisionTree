@@ -8,6 +8,18 @@
 
 #include "DTRNode.h"
 
+DTRNode::~DTRNode()
+{
+    if (left_child_) {
+        delete left_child_;
+        left_child_ = NULL;
+    }
+    if (right_child_) {
+        delete right_child_;
+        right_child_ = NULL;
+    }
+}
+
 static void write_DTRNode(FILE *pf, DTRNode * node)
 {
     if (!node) {

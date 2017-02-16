@@ -28,7 +28,8 @@ class DTRTree
     
 public:
     DTRTree(){root_ = NULL;}
-    ~DTRTree(){;}
+    ~DTRTree();
+    
     
     // features:
     // labels: regression label

@@ -46,6 +46,7 @@ public:
         sample_num_ = 0;
         sample_percentage_ = 0.0;
     }
+    ~DTRNode();
     
     static bool writeTree(const char *fileName, DTRNode * root);
     static bool readTree(const char *fileName, DTRNode * & root);

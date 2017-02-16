@@ -15,6 +15,14 @@
 using std::cout;
 using std::endl;
 
+DTRTree::~DTRTree()
+{
+    if (root_) {
+        delete root_;
+        root_ = NULL;
+    }    
+}
+
 bool DTRTree::buildTree(const vector<VectorXd> & features,
                         const vector<VectorXd> & labels,
                         const vector<unsigned int> & indices,
