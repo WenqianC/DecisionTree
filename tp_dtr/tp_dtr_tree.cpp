@@ -265,6 +265,7 @@ bool TPDTRTree::setLeafNode(const vector<Eigen::MatrixXf> & features,
 {
     node->is_leaf_ = true;
     DTUtil::meanStddev<Eigen::VectorXf>(labels, indices, node->label_mean_, node->label_stddev_);
+    node->split_param_.split_weight_.resize(features.front().rows(), 0);
     if (tree_param_.verbose_leaf_) {
         printf("leaf node depth size %d    %lu\n", node->depth_, indices.size());
         cout<<"mean  : \n"<<node->label_mean_.transpose()<<endl;
@@ -278,8 +279,7 @@ bool TPDTRTree::predict(const Eigen::MatrixXf & feature,
                         Eigen::VectorXf & pred) const
 {
     assert(root_);
-    this->predict(root_, feature, pred);
-    return true;
+    return this->predict(root_, feature, pred);
 }
 
 bool TPDTRTree::predict(const NodePtr node,
@@ -303,10 +303,15 @@ bool TPDTRTree::predict(const NodePtr node,
         feat += wt[i] * feature(i, dim);
     }
     
-    NodePtr best_node = (feat < node->split_param_.split_threshold_) ? node->left_child_: node->right_child_;
+    NodePtr best_node  = (feat < node->split_param_.split_threshold_) ? node->left_child_: node->right_child_;
+    NodePtr other_node = (feat < node->split_param_.split_threshold_) ? node->right_child_: node->left_child_;
     
     if (best_node) {
         return this->predict(best_node, feature, pred);
+    }
+    else if (other_node) {
+        //return this->predict(other_node, feature, pred);
+        return false;
     }
     else {
         return false;

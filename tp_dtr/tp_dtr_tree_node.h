@@ -55,6 +55,7 @@ public:
     
 private:
     static void writeNode(FILE *pf, const NodePtr node);
+    static void readNode(FILE *pf, NodePtr & node);
     
 };
 

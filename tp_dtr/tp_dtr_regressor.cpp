@@ -69,5 +69,47 @@ bool TPDTRegressor::save(const char *fileName) const
 
 bool TPDTRegressor::load(const char *fileName)
 {
+    FILE *pf = fopen(fileName, "r");
+    if (!pf) {
+        printf("Error: can not open file %s\n", fileName);
+        return false;
+    }
+    
+    int ret_num = fscanf(pf, "%d %d %d", &feature_channel_, &feature_dim_, &label_dim_);
+    assert(ret_num == 3);
+    
+    bool is_read = reg_tree_param_.readFromFile(pf);
+    assert(is_read);
+    reg_tree_param_.printSelf();
+    
+    vector<string> treeFiles;
+    for (int i = 0; i<reg_tree_param_.tree_num_; i++) {
+        char buf[1024] = {NULL};
+        fscanf(pf, "%s", buf);
+        treeFiles.push_back(string(buf));
+    }
+    fclose(pf);
+    
+    for (int i = 0; i<trees_.size(); i++) {
+        delete trees_[i];
+        trees_[i] = 0;
+    }
+    trees_.clear();
+    
+    // read each tree
+    for (int i = 0; i<treeFiles.size(); i++) {
+        Node * root = NULL;
+        bool isRead = false;
+        isRead = Node::readTree(treeFiles[i].c_str(), root);
+        assert(isRead);
+        assert(root);
+        
+        TreePtr tree = new Tree();
+        tree->root_ = root;
+        tree->setTreeParameter(reg_tree_param_);
+        trees_.push_back(tree);
+    }
+    printf("read from %s\n", fileName);
+
     return true;    
 }

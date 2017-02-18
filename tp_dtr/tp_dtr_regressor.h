@@ -21,6 +21,9 @@ public:
     friend class DTRegressorBuilder;
     friend class RDTBuilder;
     
+    typedef TPDTRTreeNode Node;
+    typedef TPDTRTreeNode* NodePtr;
+    typedef TPDTRTree Tree;
     typedef TPDTRTree* TreePtr;
     
     vector<TreePtr> trees_;
@@ -36,6 +39,7 @@ public:
     
     bool predict(const Eigen::MatrixXf & feature,
                  Eigen::VectorXf & pred) const;   
+    
     
     
     bool save(const char *fileName) const;
