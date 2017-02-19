@@ -32,7 +32,7 @@ public:
     int candidate_dim_num_;
     int candidate_threshold_num_;    // number of split in [v_min, v_max]
     double min_split_node_std_dev_;  // 0.05 meter
-    
+        
     bool verbose_;
     bool verbose_leaf_;
     
@@ -47,8 +47,7 @@ public:
         
         candidate_dim_num_ = 6;
         candidate_threshold_num_ = 10;
-        
-        min_split_node_std_dev_ = INT_MAX;
+        min_split_node_std_dev_ = 0.0;
         
         verbose_ = false;
         verbose_leaf_ = false;
@@ -110,7 +109,7 @@ public:
         
         fprintf(pf, "candidate_dim_num %d\n", candidate_dim_num_);
         fprintf(pf, "candidate_threshold_num %d\n", candidate_threshold_num_);
-        fprintf(pf, "min_split_node_std_dev %f\n", min_split_node_std_dev_);
+        fprintf(pf, "min_split_node_std_dev %f\n", min_split_node_std_dev_);        
         
         fprintf(pf, "verbose %d\n", (int)verbose_);
         fprintf(pf, "verbose_leaf %d\n\n", (int)verbose_leaf_);

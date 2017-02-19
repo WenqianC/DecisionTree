@@ -123,6 +123,62 @@ void DTUtil::meanMedianError(const vector<T> & errors,
 }
 
 
+double
+DTUtil::crossEntropy(const VectorXd & prob)
+{
+    double entropy = 0.0;
+    for (int i = 0; i<prob.size(); i++) {
+        double p = prob[i];
+        assert(p > 0 && p <= 1);
+        entropy += - p * std::log(p);
+    }
+    return entropy;
+}
+
+
+double DTUtil::balanceLoss(const int leftNodeSize, const int rightNodeSize)
+{
+    double dif = leftNodeSize - rightNodeSize;
+    double num = leftNodeSize + rightNodeSize;
+    double loss = fabs(dif)/num;
+    assert(loss >= 0);
+    return loss;
+}
+
+bool
+DTUtil::isSameLabel(const vector<unsigned int> & labels, const vector<unsigned int> & indices)
+{
+    assert(indices.size() >= 1);
+    unsigned label = labels[indices[0]];
+    for (int i = 1; i<indices.size(); i++) {
+        if (label != labels[indices[i]]) {
+            return false;
+        }
+    }
+    return true;
+}
+
+Eigen::MatrixXd
+DTUtil::confusionMatrix(const vector<unsigned int> & preds, const vector<unsigned int> & labels,
+                        const int category_num,
+                        bool normalize)
+{
+    assert(preds.size() == labels.size());
+    assert(category_num > 0);
+    
+    Eigen::MatrixXd confusion = Eigen::MatrixXd::Zero(category_num, category_num);
+    for (int i = 0; i<preds.size(); i++) {
+        confusion(labels[i], preds[i]) += 1.0;
+    }
+    if (normalize) {
+        confusion = 1.0 / preds.size() * confusion;
+    }
+    return confusion;
+}
+
+
+
+
 template double
 DTUtil::spatialVariance(const vector<Eigen::VectorXf> & labels, const vector<unsigned int> & indices);
 

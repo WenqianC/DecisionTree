@@ -131,6 +131,119 @@ bool DTUtil_IO::read_fn_gd_preds(const char *file_name, vector<int> & fns, vecto
     return true;
 }
 
+void DTUtil_IO::load_vertical_concat_feature_label(const vector<string> & feature_files, const vector<string> & label_files,
+                                                   vector<Eigen::MatrixXf> & features, vector<Eigen::VectorXf> & labels)
+{
+    // read feature/label file names
+    assert(feature_files.size() == label_files.size());
+    assert(feature_files.size() > 1);
+    
+    // temporary data holder
+    vector<vector<Eigen::VectorXd> > feature_groups(feature_files.size());
+    vector<vector<Eigen::VectorXd> > label_groups(feature_files.size());
+    
+    vector<int> prev_input_fns;
+    for (size_t i = 0; i<feature_files.size(); i++) {
+        vector<int> input_fns;
+        vector<int> output_fns;
+        DTUtil_IO::read_fn_matrix(feature_files[i].c_str(), input_fns, feature_groups[i]);
+        DTUtil_IO::read_fn_matrix(label_files[i].c_str(), output_fns, label_groups[i]);
+        assert(input_fns.size() == output_fns.size());
+        assert(label_groups[i].front().size() == 1);
+        // check frame number
+        for (int j = 0; j<input_fns.size(); j++) {
+            assert(input_fns[j] == output_fns[j]);
+        }
+        if (prev_input_fns.size() != 0) {
+            assert(prev_input_fns.size() == input_fns.size());
+            for (int j = 0; j<input_fns.size(); j++) {
+                assert(input_fns[j] == prev_input_fns[j]);
+            }
+        }
+        prev_input_fns = input_fns;
+    }
+    assert(feature_groups.size() == label_groups.size());
+    
+    // assumen the frame number between channles are correct
+    const int rows = (int)feature_groups.size();   // row is the same as channel
+    const int cols = (int)feature_groups[0][0].size();
+    const int N = (int)feature_groups[0].size();
+    features.resize(N);
+    labels.resize(N);
+    
+    for (int i = 0; i<N; i++) {
+        MatrixXf feat = MatrixXf::Zero(rows, cols);
+        for (int r = 0; r<rows; r++) {
+            for (int c = 0; c<cols; c++) {
+                feat(r, c) = feature_groups[r][i][c];
+            }
+        }
+        
+        features[i] = feat;
+        
+        VectorXf label = VectorXf::Zero(rows, 1);
+        for (int r = 0; r<rows; r++) {
+            label[r] = label_groups[r][i][0];
+        }
+        labels[i] = label;
+    }
+    assert(features.size() == labels.size());
+}
+
+void DTUtil_IO::load_vertical_concat_feature_label(const vector<string> & feature_files, const char * label_file,
+                                                   vector<Eigen::MatrixXf> & features, vector<unsigned int> & labels)
+{
+    // read feature/label file names    
+    assert(feature_files.size() > 1);
+    
+    // temporary data holder
+    vector<vector<Eigen::VectorXd> > feature_groups(feature_files.size());
+    
+    // read feature files
+    vector<int> prev_input_fns;
+    for (size_t i = 0; i<feature_files.size(); i++) {
+        vector<int> input_fns;
+        bool is_read = DTUtil_IO::read_fn_matrix(feature_files[i].c_str(), input_fns, feature_groups[i]);
+        assert(is_read);
+        // check frame number
+        if (prev_input_fns.size() != 0) {
+            assert(prev_input_fns.size() == input_fns.size());
+            for (int j = 0; j<input_fns.size(); j++) {
+                assert(input_fns[j] == prev_input_fns[j]);
+            }
+        }
+        prev_input_fns = input_fns;
+    }
+    
+    // assumen the frame number between channles are correct
+    const int rows = (int)feature_groups.size();   // row is the same as channel
+    const int cols = (int)feature_groups[0][0].size();
+    const int N = (int)feature_groups[0].size();
+    features.resize(N);
+    
+    for (int i = 0; i<N; i++) {
+        MatrixXf feat = MatrixXf::Zero(rows, cols);
+        for (int r = 0; r<rows; r++) {
+            for (int c = 0; c<cols; c++) {
+                feat(r, c) = feature_groups[r][i][c];
+            }
+        }
+        
+        features[i] = feat;
+    }    
+    
+    // read labels
+    vector<int> label_fns;
+    bool is_read = DTUtil_IO::read_fn_labels(label_file, label_fns, labels);
+    assert(is_read);
+    assert(label_fns.size() == prev_input_fns.size());
+    for (int i = 0; i<label_fns.size(); i++) {
+        assert(label_fns[i] ==  prev_input_fns[i]);
+    }
+    assert(features.size() == labels.size());
+}
+
+
 bool DTUtil_IO::save_matrix(const char * file_name, const vector<VectorXd> & data)
 {
     assert(data.size() > 0);
@@ -202,4 +315,32 @@ bool DTUtil_IO::write_files(const char *file_name, const vector<string>& files)
     
     return true;
 }
+
+template <class T_VectorX>
+bool DTUtil_IO::saveVectorsAsMatrix(const char * file_name, const vector<T_VectorX> & data)
+{
+    assert(data.size() > 0);
+    FILE *pf = fopen(file_name, "w");
+    if (!pf) {
+        printf("can not write to %s\n", file_name);
+        return false;
+    }
+    assert(pf);
+    fprintf(pf, "%d %d\n", (int)data.size(), (int)data[0].size());
+    for (int i = 0; i<data.size(); i++) {
+        for (int j = 0; j<data[i].size(); j++) {
+            fprintf(pf, "%lf ", (double)data[i][j]);
+            if (j == data[i].size()-1) {
+                fprintf(pf, "\n");
+            }
+        }
+    }
+    printf("save to %s\n", file_name);
+    return true;
+}
+
+// instantiate
+template bool
+DTUtil_IO::saveVectorsAsMatrix(const char * file_name, const vector<Eigen::VectorXf> & data);
+
 

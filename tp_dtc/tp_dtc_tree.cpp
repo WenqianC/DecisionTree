@@ -1,13 +1,13 @@
 //
-//  tp_dtr_tree.cpp
+//  tp_dtc_tree.cpp
 //  Classifer_RF
 //
-//  Created by jimmy on 2017-02-16.
+//  Created by jimmy on 2017-02-19.
 //  Copyright (c) 2017 Nowhere Planet. All rights reserved.
 //
 
-#include "tp_dtr_tree.h"
-#include "tp_dtr_tree_node.h"
+#include "tp_dtc_tree.h"
+#include "tp_dtc_tree_node.h"
 #include <iostream>
 #include "dt_util.h"
 
@@ -15,7 +15,7 @@
 using std::cout;
 using std::endl;
 
-TPDTRTree::~TPDTRTree()
+TPDTCTree::~TPDTCTree()
 {
     if (root_) {
         delete root_;
@@ -25,8 +25,8 @@ TPDTRTree::~TPDTRTree()
 }
 
 
-bool TPDTRTree::buildTree(const vector<MatrixXf> & features,
-                          const vector<VectorXf> & labels,
+bool TPDTCTree::buildTree(const vector<MatrixXf> & features,
+                          const vector<unsigned int> & labels,
                           const vector<unsigned int> & indices,
                           const TreeParameter & param)
 {
@@ -40,7 +40,7 @@ bool TPDTRTree::buildTree(const vector<MatrixXf> & features,
     
     // generate permutation
     vector<int> pairwise_cmp = {-1, 0, 1};
-    trinary_permutation_ = TPDTRUtil::generatePermutation(pairwise_cmp);
+    trinary_permutation_ = TPDTCUtil::generatePermutation(pairwise_cmp);
     trinary_permutation_.resize(trinary_permutation_.size()/2);
     cout<<"feature projection permutation begin: "<<endl;
     for(int i = 0; i<trinary_permutation_.size(); i++) {
@@ -55,21 +55,22 @@ bool TPDTRTree::buildTree(const vector<MatrixXf> & features,
 }
 
 bool
-TPDTRTree::bestSplitParameter(const vector<Eigen::MatrixXf> & features,
-                                    const vector<VectorXf> & labels,
-                                    const vector<unsigned int> & indices,
-                                    const TPDTRTreeParameter & tree_param,
-                                    const int depth,
-                                    TPDTRSplitParameter & split_param,
-                                    vector<unsigned int> & left_indices,
-                                    vector<unsigned int> & right_indices)
+TPDTCTree::bestSplitParameter(const vector<Eigen::MatrixXf> & features,
+                              const vector<unsigned int> & labels,
+                              const vector<unsigned int> & indices,
+                              const TPDTCTreeParameter & tree_param,
+                              const int depth,
+                              TPDTCSplitParameter & split_param,
+                              vector<unsigned int> & left_indices,
+                              vector<unsigned int> & right_indices)
 {
     double min_loss = std::numeric_limits<double>::max();
     
     const int min_node_size = tree_param.min_leaf_node_;
     const int candidate_threshold_num = tree_param.candidate_threshold_num_;
-    const int proj_dim = (int)features.front().rows();
+    const int proj_dim           = (int)features.front().rows();
     const int max_balanced_depth = tree_param.max_balanced_depth_;
+    const int category_num       = tree_param_.category_num_;
     assert(proj_dim == split_param.split_weight_.size());
     
     vector<int> wt = split_param.split_weight_;
@@ -95,7 +96,7 @@ TPDTRTree::bestSplitParameter(const vector<Eigen::MatrixXf> & features,
     
     // random split values
     vector<double> split_values = rnd_generator_.getRandomNumbers(min_v, max_v, candidate_threshold_num);
-     
+    
     // split data by pixel difference
     bool is_split = false;
     for (int i = 0; i<split_values.size(); i++) {
@@ -124,11 +125,26 @@ TPDTRTree::bestSplitParameter(const vector<Eigen::MatrixXf> & features,
             cur_loss = DTUtil::balanceLoss((int)cur_left_index.size(), (int)cur_right_index.size());
         }
         else {
-            cur_loss = DTUtil::spatialVariance<VectorXf, int>(labels, cur_left_index, wt);
-            if (cur_loss > min_loss) {
-                continue;
+            // at least one example
+            // probability of each category (label) in left node
+            Eigen::VectorXd left_prob = Eigen::VectorXd::Ones(category_num);
+            for (int j = 0; j<cur_left_index.size(); j++) {
+                int label = labels[cur_left_index[j]];
+                left_prob[label] += 1.0;
             }
-            cur_loss += DTUtil::spatialVariance<VectorXf, int>(labels, cur_right_index, wt);
+            left_prob /= cur_left_index.size() + category_num;
+            
+            Eigen::VectorXd right_prob = Eigen::VectorXd::Ones(category_num);
+            for (int j = 0; j<cur_right_index.size(); j++) {
+                int label = labels[cur_right_index[j]];
+                right_prob[label] += 1.0;
+            }
+            right_prob /= cur_right_index.size() + category_num;
+            
+            double left_entropy  = DTUtil::crossEntropy(left_prob);
+            double right_entropy = DTUtil::crossEntropy(right_prob);
+            double left_ratio = 1.0 * cur_left_index.size()/indices.size();
+            cur_loss = left_ratio * left_entropy + (1.0 - left_ratio) * right_entropy; // cross entropy
         }
         
         if (cur_loss < min_loss) {
@@ -150,8 +166,8 @@ TPDTRTree::bestSplitParameter(const vector<Eigen::MatrixXf> & features,
 }
 
 
-bool TPDTRTree::configureNode(const vector<MatrixXf> & features,
-                              const vector<VectorXf> & labels,
+bool TPDTCTree::configureNode(const vector<MatrixXf> & features,
+                              const vector<unsigned int> & labels,
                               const vector<unsigned int> & indices,
                               NodePtr node)
 {
@@ -162,8 +178,7 @@ bool TPDTRTree::configureNode(const vector<MatrixXf> & features,
     const int max_depth     = tree_param_.max_tree_depth_;
     const int depth = node->depth_;
     const int dim = (int)features[0].cols();
-    const int candidate_dim_num = tree_param_.candidate_dim_num_;
-    const double min_split_stddev = tree_param_.min_split_node_std_dev_;
+    const int candidate_dim_num = tree_param_.candidate_dim_num_;   
     const int candidate_projection_num = tree_param_.candidate_projection_num_;
     
     assert(candidate_dim_num <= dim);
@@ -175,12 +190,8 @@ bool TPDTRTree::configureNode(const vector<MatrixXf> & features,
     }
     
     // check standard deviation, early stop
-    if (depth > max_depth/2) {
-        double variance = DTUtil::spatialVariance<VectorXf>(labels, indices);
-        double std_dev = sqrt(variance/indices.size());
-        if (std_dev < min_split_stddev) {
-            return this->setLeafNode(features, labels, indices, node);
-        }
+    if (depth > max_depth/2 && DTUtil::isSameLabel(labels, indices)) {
+        return this->setLeafNode(features, labels, indices, node);
     }
     
     // randomly select a subset of dimensions
@@ -199,31 +210,31 @@ bool TPDTRTree::configureNode(const vector<MatrixXf> & features,
     }
     std::random_shuffle(projection_index.begin(), projection_index.end());
     projection_index.resize(candidate_projection_num);
-    vector<vector<int> > random_projection;          // random projection 
+    vector<vector<int> > random_projection;          // random projection
     for (int i = 0; i<projection_index.size(); i++) {
         random_projection.push_back(trinary_permutation_[projection_index[i]]);
     }
     
-    
     // split the data to left and right node
     vector<unsigned int> left_indices;
     vector<unsigned int> right_indices;
-    TPDTRSplitParameter split_param;
+    TPDTCSplitParameter split_param;
     bool is_split = false;
     double loss = std::numeric_limits<double>::max();
     
     // optimize random feature
     for (int i = 0; i<random_dim.size(); i++) {
-        TPDTRSplitParameter cur_split_param;
+        TPDTCSplitParameter cur_split_param;
         cur_split_param.split_dim_ = random_dim[i];
         for (int j = 0; j<random_projection.size(); j++) {
             cur_split_param.split_weight_ = random_projection[j];
             vector<unsigned int> cur_left_indices;
             vector<unsigned int> cur_right_indices;
-           
+            
             // split data once
-            bool cur_split = this->bestSplitParameter(features, labels, indices, tree_param_, depth, cur_split_param,
-                                                       cur_left_indices, cur_right_indices);
+            bool cur_split = this->bestSplitParameter(features, labels, indices, tree_param_,
+                                                      depth, cur_split_param,
+                                                      cur_left_indices, cur_right_indices);
             if (cur_split && (cur_split_param.split_loss_ < loss)) {
                 is_split = true;
                 loss = cur_split_param.split_loss_;
@@ -263,39 +274,55 @@ bool TPDTRTree::configureNode(const vector<MatrixXf> & features,
 
 
 
-bool TPDTRTree::setLeafNode(const vector<Eigen::MatrixXf> & features,
-                            const vector<VectorXf> & labels,
+bool TPDTCTree::setLeafNode(const vector<Eigen::MatrixXf> & features,
+                            const vector<unsigned int> & labels,
                             const vector<unsigned int> & indices,
                             NodePtr node)
 {
+    const int category_num = tree_param_.category_num_;
     node->is_leaf_ = true;
-    DTUtil::meanStddev<Eigen::VectorXf>(labels, indices, node->label_mean_, node->label_stddev_);
     node->split_param_.split_weight_.resize(features.front().rows(), 0);
-    if (tree_param_.normalize_leaf_node_label_) {
-        node->label_mean_.normalize();
+    Eigen::VectorXf prob = Eigen::VectorXf::Zero(category_num);
+    for (int i = 0; i<indices.size(); i++) {
+        assert(labels[indices[i]] >= 0 && labels[indices[i]] < category_num);
+        prob[labels[indices[i]]] += 1.0;
     }
+    prob /= indices.size();
+    node->prob_ = prob;
     if (tree_param_.verbose_leaf_) {
         printf("leaf node depth size %d    %lu\n", node->depth_, indices.size());
-        cout<<"mean  : \n"<<node->label_mean_.transpose()<<endl;
-        cout<<"stddev: \n"<<node->label_stddev_.transpose()<<endl;
+        cout<<"probability: "<<node->prob_.transpose()<<endl<<endl;;
     }
     return true;
 }
 
 
-bool TPDTRTree::predict(const Eigen::MatrixXf & feature,
+bool TPDTCTree::predict(const Eigen::MatrixXf & feature,
+                        unsigned int & pred) const
+{
+    Eigen::VectorXf prob;
+    bool isPred = this->predict(feature, prob);
+    if (!isPred) {
+        return false;
+    }
+    prob.maxCoeff(&pred);
+    return true;
+}
+
+
+bool TPDTCTree::predict(const Eigen::MatrixXf & feature,
                         Eigen::VectorXf & pred) const
 {
     assert(root_);
     return this->predict(root_, feature, pred);
 }
 
-bool TPDTRTree::predict(const NodePtr node,
+bool TPDTCTree::predict(const NodePtr node,
                         const Eigen::MatrixXf & feature,
                         Eigen::VectorXf & pred) const
 {
     if (node->is_leaf_) {
-        pred = node->label_mean_;
+        pred = node->prob_;
         return true;
     }
     
@@ -326,12 +353,12 @@ bool TPDTRTree::predict(const NodePtr node,
     }
 }
 
-const TPDTRTree::TreeParameter & TPDTRTree::getTreeParameter(void) const
+const TPDTCTree::TreeParameter & TPDTCTree::getTreeParameter(void) const
 {
     return tree_param_;
 }
 
-void TPDTRTree::setTreeParameter(const TreeParameter & param)
+void TPDTCTree::setTreeParameter(const TreeParameter & param)
 {
     tree_param_ = param;
 }

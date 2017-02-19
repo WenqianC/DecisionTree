@@ -37,6 +37,18 @@ public:
     
     template <class T>
     static void meanMedianError(const vector<T> & errors, T & mean, T & median);
+    
+   // template <class T_Vector, class Type2>
+    static double crossEntropy(const VectorXd & prob);
+    
+    static double balanceLoss(const int leftNodeSize, const int rightNodeSize);
+    
+    static bool isSameLabel(const vector<unsigned int> & labels, const vector<unsigned int> & indices);
+    
+    
+    static Eigen::MatrixXd confusionMatrix(const vector<unsigned int> & preds, const vector<unsigned int> & labels,
+                                           const int category_num,
+                                           bool normalize);
 
     
 };

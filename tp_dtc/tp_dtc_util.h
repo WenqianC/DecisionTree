@@ -1,13 +1,13 @@
 //
-//  tp_dtr_util.h
+//  tp_dtc_util.h
 //  Classifer_RF
 //
-//  Created by jimmy on 2017-02-16.
+//  Created by jimmy on 2017-02-19.
 //  Copyright (c) 2017 Nowhere Planet. All rights reserved.
 //
 
-#ifndef __Classifer_RF__tp_dtr_util__
-#define __Classifer_RF__tp_dtr_util__
+#ifndef __Classifer_RF__tp_dtc_util__
+#define __Classifer_RF__tp_dtc_util__
 
 #include <stdio.h>
 #include <vector>
@@ -19,7 +19,7 @@ using std::vector;
 using std::unordered_map;
 using std::string;
 
-class TPDTRTreeParameter
+class TPDTCTreeParameter
 {
 public:
     int tree_num_;               // number of trees
@@ -32,16 +32,14 @@ public:
     int candidate_dim_num_;
     int candidate_projection_num_;
     int candidate_threshold_num_;    // number of split in [v_min, v_max]
-    double min_split_node_std_dev_;  // 0.05 meter
     
-    // leaf node
-    bool normalize_leaf_node_label_;
+    int category_num_;               // category number
     
     bool verbose_;
     bool verbose_leaf_;
     
     
-    TPDTRTreeParameter()
+    TPDTCTreeParameter()
     {
         tree_num_ = 5;
         max_tree_depth_ = 10;
@@ -53,8 +51,8 @@ public:
         candidate_dim_num_ = 6;
         candidate_projection_num_ = 2;
         candidate_threshold_num_ = 10;
-        min_split_node_std_dev_ = 0.0;
-        normalize_leaf_node_label_ = true;
+        
+        category_num_ = 2;
         
         verbose_ = false;
         verbose_leaf_ = false;
@@ -77,7 +75,7 @@ public:
     {
         assert(pf);
         
-        const int param_num = 12;
+        const int param_num = 11;
         unordered_map<std::string, double> imap;
         for(int i = 0; i<param_num; i++)
         {
@@ -101,8 +99,8 @@ public:
         candidate_dim_num_ = (int)imap[string("candidate_dim_num")];
         candidate_projection_num_ = (int)imap[string("candidate_projection_num")];
         candidate_threshold_num_ = (int)imap[string("candidate_threshold_num")];
-        min_split_node_std_dev_ = (double)imap[string("min_split_node_std_dev")];
-        normalize_leaf_node_label_ = (bool)imap[string("normalize_leaf_node_label")];
+        
+        category_num_ = (int)imap[string("category_num")];
         
         verbose_ = (bool)imap[string("verbose")];
         verbose_leaf_ = (bool)imap[string("verbose_leaf")];
@@ -122,8 +120,8 @@ public:
         fprintf(pf, "candidate_dim_num %d\n", candidate_dim_num_);
         fprintf(pf, "candidate_projection_num %d\n", candidate_projection_num_);
         fprintf(pf, "candidate_threshold_num %d\n", candidate_threshold_num_);
-        fprintf(pf, "min_split_node_std_dev %f\n", min_split_node_std_dev_);
-        fprintf(pf, "normalize_leaf_node_label %d\n", normalize_leaf_node_label_);
+        
+        fprintf(pf, "category_num %d\n", category_num_);
         
         fprintf(pf, "verbose %d\n", (int)verbose_);
         fprintf(pf, "verbose_leaf %d\n\n", (int)verbose_leaf_);
@@ -132,21 +130,21 @@ public:
     
     void printSelf() const
     {
-        writeToFile(stdout);        
+        writeToFile(stdout);
     }
     
 };
 
 
-class TPDTRSplitParameter
+class TPDTCSplitParameter
 {
 public:
     int split_dim_;
     vector<int> split_weight_;  // a combination of -1, 0 and 1.
     double split_threshold_;
-    double split_loss_;        // spatial variance
+    double split_loss_;         // spatial variance
     
-    TPDTRSplitParameter()
+    TPDTCSplitParameter()
     {
         split_dim_ = 0;
         split_threshold_ = 0.0;
@@ -154,8 +152,7 @@ public:
     }
 };
 
-
-class TPDTRUtil
+class TPDTCUtil
 {
 public:
     static vector< vector<int> >
@@ -164,5 +161,4 @@ public:
 
 
 
-
-#endif /* defined(__Classifer_RF__tp_dtr_util__) */
+#endif /* defined(__Classifer_RF__tp_dtc_util__) */

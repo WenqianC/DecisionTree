@@ -18,7 +18,7 @@ using std::vector;
 class TPDTRegressor
 {
 public:
-    friend class DTRegressorBuilder;
+    friend class TPDTRegressorBuilder;
     friend class RDTBuilder;
     
     typedef TPDTRTreeNode Node;

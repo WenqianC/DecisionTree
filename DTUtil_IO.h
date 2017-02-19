@@ -18,7 +18,9 @@
 using std::vector;
 using std::string;
 using Eigen::VectorXd;
+using Eigen::VectorXf;
 using Eigen::MatrixXd;
+using Eigen::MatrixXf;
 using Eigen::MatrixXi;
 
 class DTUtil_IO
@@ -26,13 +28,23 @@ class DTUtil_IO
 public:
     static bool read_matrix(const char * file_name, vector<VectorXd> & data);
     static bool read_matrix(const char * file_name, Eigen::MatrixXd & data);
-    static bool save_matrix(const char * file_name, const vector<VectorXd> & data);
+    static bool save_matrix(const char * file_name, const vector<VectorXd> & data);    
     static bool read_labels(const char * file_name, vector<unsigned int> & labels);
     
     // files with frame number as the first column
     static bool read_fn_matrix(const char *file_name, vector<int> & fns, vector<Eigen::VectorXd> & data);
     static bool read_fn_labels(const char * file_name, vector<int> & fns, vector<unsigned int> & labels);
     static bool read_fn_gd_preds(const char *file_name, vector<int> & fns, vector<unsigned int> & gds,  vector<unsigned int> & preds);
+    
+    // file with frame number as the first column
+    // original features and labels are synchronized (e.g., frame numbers)
+    // original label dimension is 1
+    static void load_vertical_concat_feature_label(const vector<string> & feature_files, const vector<string> & label_files,
+                                                   vector<Eigen::MatrixXf> & features, vector<Eigen::VectorXf> & labels);
+    
+    // multiple feature files and a single label file
+    static void load_vertical_concat_feature_label(const vector<string> & feature_files, const char * label_file,
+                                                   vector<Eigen::MatrixXf> & features, vector<unsigned int> & labels);
     
     static bool read_files(const char *file_name, vector<string> & files);
     static bool write_files(const char *file_name, const vector<string>& files);
@@ -53,7 +65,12 @@ public:
             printf("Error: can not open file %s\n", file_name);
             return false;
         }
-    }    
+    }
+    
+    template <class T_VectorX>
+    static bool saveVectorsAsMatrix(const char * file_name, const vector<T_VectorX> & data);
+    
+    
 };
 
 
