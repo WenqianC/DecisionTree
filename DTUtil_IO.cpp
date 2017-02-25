@@ -87,6 +87,31 @@ bool DTUtil_IO::read_fn_matrix(const char *file_name, vector<int> & fns, vector<
     return true;
 }
 
+bool DTUtil_IO::read_fn_matrix(const char *file_name, vector<int> & fns, vector<Eigen::VectorXf> & features)
+{
+    assert(fns.size() == 0);
+    assert(features.size() == 0);
+    
+    vector<Eigen::VectorXd> fn_data;
+    bool is_read = DTUtil_IO::read_matrix(file_name, fn_data);
+    assert(is_read);
+    assert(fn_data[0].size() > 1);
+    
+    int feat_size = (int)fn_data[0].size() - 1;
+    for (int i = 0; i<fn_data.size(); i++) {
+        // treat first column as frame number
+        Eigen::VectorXf cur_feat = Eigen::VectorXf::Zero(feat_size);
+        fns.push_back((int)fn_data[i][0]);
+        // the rest column as feature
+        for (int j = 1; j<fn_data[i].size(); j++) {
+            cur_feat[j-1] = fn_data[i][j];
+        }
+        features.push_back(cur_feat);
+    }
+    assert(features.size() == fns.size());
+    return true;
+}
+
 bool DTUtil_IO::read_fn_labels(const char * file_name, vector<int> & fns, vector<unsigned int> & labels)
 {
     assert(fns.size() == 0);
@@ -135,25 +160,15 @@ void DTUtil_IO::load_vertical_concat_feature_label(const vector<string> & featur
                                                    vector<Eigen::MatrixXf> & features, vector<Eigen::VectorXf> & labels)
 {
     // read feature/label file names
-    assert(feature_files.size() == label_files.size());
     assert(feature_files.size() > 1);
+    assert(label_files.size() > 0);
     
     // temporary data holder
     vector<vector<Eigen::VectorXd> > feature_groups(feature_files.size());
-    vector<vector<Eigen::VectorXd> > label_groups(feature_files.size());
-    
     vector<int> prev_input_fns;
     for (size_t i = 0; i<feature_files.size(); i++) {
         vector<int> input_fns;
-        vector<int> output_fns;
         DTUtil_IO::read_fn_matrix(feature_files[i].c_str(), input_fns, feature_groups[i]);
-        DTUtil_IO::read_fn_matrix(label_files[i].c_str(), output_fns, label_groups[i]);
-        assert(input_fns.size() == output_fns.size());
-        assert(label_groups[i].front().size() == 1);
-        // check frame number
-        for (int j = 0; j<input_fns.size(); j++) {
-            assert(input_fns[j] == output_fns[j]);
-        }
         if (prev_input_fns.size() != 0) {
             assert(prev_input_fns.size() == input_fns.size());
             for (int j = 0; j<input_fns.size(); j++) {
@@ -162,7 +177,23 @@ void DTUtil_IO::load_vertical_concat_feature_label(const vector<string> & featur
         }
         prev_input_fns = input_fns;
     }
-    assert(feature_groups.size() == label_groups.size());
+    assert(feature_groups.size() == feature_files.size());
+    
+    // read labels
+    vector<vector<Eigen::VectorXd> > label_groups(label_files.size());
+    vector<int> prev_output_fns;
+    for (size_t i = 0; i<label_files.size(); i++) {
+        vector<int> output_fns;
+        DTUtil_IO::read_fn_matrix(label_files[i].c_str(), output_fns, label_groups[i]);
+        assert(label_groups[i].front().size() == 1);
+        prev_output_fns = output_fns;
+    }
+    assert(prev_input_fns.size() == prev_output_fns.size());
+    
+    // check frame number
+    for (int j = 0; j<prev_input_fns.size(); j++) {
+        assert(prev_input_fns[j] == prev_output_fns[j]);
+    }
     
     // assumen the frame number between channles are correct
     const int rows = (int)feature_groups.size();   // row is the same as channel
@@ -180,13 +211,17 @@ void DTUtil_IO::load_vertical_concat_feature_label(const vector<string> & featur
         }
         
         features[i] = feat;
-        
-        VectorXf label = VectorXf::Zero(rows, 1);
-        for (int r = 0; r<rows; r++) {
+    }
+    
+    const int label_rows = (int)label_groups.size();
+    for (int i = 0; i<N; i++) {
+        VectorXf label = VectorXf::Zero(label_rows, 1);
+        for (int r = 0; r<label_rows; r++) {
             label[r] = label_groups[r][i][0];
         }
         labels[i] = label;
     }
+    
     assert(features.size() == labels.size());
 }
 

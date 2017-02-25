@@ -34,8 +34,6 @@ public:
     int candidate_threshold_num_;    // number of split in [v_min, v_max]
     double min_split_node_std_dev_;  // 0.05 meter
     
-    // leaf node
-    bool normalize_leaf_node_label_;
     
     bool verbose_;
     bool verbose_leaf_;
@@ -51,10 +49,9 @@ public:
         min_split_node_ = 8;
         
         candidate_dim_num_ = 6;
-        candidate_projection_num_ = 2;
+        candidate_projection_num_ = 4;
         candidate_threshold_num_ = 10;
         min_split_node_std_dev_ = 0.0;
-        normalize_leaf_node_label_ = true;
         
         verbose_ = false;
         verbose_leaf_ = false;
@@ -77,7 +74,7 @@ public:
     {
         assert(pf);
         
-        const int param_num = 12;
+        const int param_num = 11;
         unordered_map<std::string, double> imap;
         for(int i = 0; i<param_num; i++)
         {
@@ -102,7 +99,6 @@ public:
         candidate_projection_num_ = (int)imap[string("candidate_projection_num")];
         candidate_threshold_num_ = (int)imap[string("candidate_threshold_num")];
         min_split_node_std_dev_ = (double)imap[string("min_split_node_std_dev")];
-        normalize_leaf_node_label_ = (bool)imap[string("normalize_leaf_node_label")];
         
         verbose_ = (bool)imap[string("verbose")];
         verbose_leaf_ = (bool)imap[string("verbose_leaf")];
@@ -122,8 +118,7 @@ public:
         fprintf(pf, "candidate_dim_num %d\n", candidate_dim_num_);
         fprintf(pf, "candidate_projection_num %d\n", candidate_projection_num_);
         fprintf(pf, "candidate_threshold_num %d\n", candidate_threshold_num_);
-        fprintf(pf, "min_split_node_std_dev %f\n", min_split_node_std_dev_);
-        fprintf(pf, "normalize_leaf_node_label %d\n", normalize_leaf_node_label_);
+        fprintf(pf, "min_split_node_std_dev %f\n", min_split_node_std_dev_);        
         
         fprintf(pf, "verbose %d\n", (int)verbose_);
         fprintf(pf, "verbose_leaf %d\n\n", (int)verbose_leaf_);

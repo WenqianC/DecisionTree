@@ -97,7 +97,7 @@ TPDTCTree::bestSplitParameter(const vector<Eigen::MatrixXf> & features,
     // random split values
     vector<double> split_values = rnd_generator_.getRandomNumbers(min_v, max_v, candidate_threshold_num);
     
-    // split data by pixel difference
+    // split data by random threshold
     bool is_split = false;
     for (int i = 0; i<split_values.size(); i++) {
         double split_v = split_values[i];

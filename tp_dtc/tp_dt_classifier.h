@@ -18,8 +18,7 @@ using std::vector;
 class TPDTClassifier
 {
 public:
-    friend class DTRegressorBuilder;
-    friend class RDTBuilder;
+    friend class TPDTClassifierBuilder;    
     
     typedef TPDTCTreeNode Node;
     typedef TPDTCTreeNode* NodePtr;

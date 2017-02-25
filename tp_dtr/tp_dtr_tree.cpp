@@ -42,6 +42,10 @@ bool TPDTRTree::buildTree(const vector<MatrixXf> & features,
     vector<int> pairwise_cmp = {-1, 0, 1};
     trinary_permutation_ = TPDTRUtil::generatePermutation(pairwise_cmp);
     trinary_permutation_.resize(trinary_permutation_.size()/2);
+    vector<int> uniary = {0, 0, 1};
+    vector<vector<int> > unary = TPDTRUtil::generatePermutation(uniary);
+    trinary_permutation_.insert(trinary_permutation_.end(), unary.begin(), unary.end());
+    
     cout<<"feature projection permutation begin: "<<endl;
     for(int i = 0; i<trinary_permutation_.size(); i++) {
         for (auto c: trinary_permutation_[i]) {
@@ -124,11 +128,11 @@ TPDTRTree::bestSplitParameter(const vector<Eigen::MatrixXf> & features,
             cur_loss = DTUtil::balanceLoss((int)cur_left_index.size(), (int)cur_right_index.size());
         }
         else {
-            cur_loss = DTUtil::spatialVariance<VectorXf, int>(labels, cur_left_index, wt);
+            cur_loss = DTUtil::spatialVariance<VectorXf>(labels, cur_left_index);
             if (cur_loss > min_loss) {
                 continue;
             }
-            cur_loss += DTUtil::spatialVariance<VectorXf, int>(labels, cur_right_index, wt);
+            cur_loss += DTUtil::spatialVariance<VectorXf>(labels, cur_right_index);
         }
         
         if (cur_loss < min_loss) {
@@ -270,10 +274,7 @@ bool TPDTRTree::setLeafNode(const vector<Eigen::MatrixXf> & features,
 {
     node->is_leaf_ = true;
     DTUtil::meanStddev<Eigen::VectorXf>(labels, indices, node->label_mean_, node->label_stddev_);
-    node->split_param_.split_weight_.resize(features.front().rows(), 0);
-    if (tree_param_.normalize_leaf_node_label_) {
-        node->label_mean_.normalize();
-    }
+    node->split_param_.split_weight_.resize(features.front().rows(), 0);    
     if (tree_param_.verbose_leaf_) {
         printf("leaf node depth size %d    %lu\n", node->depth_, indices.size());
         cout<<"mean  : \n"<<node->label_mean_.transpose()<<endl;

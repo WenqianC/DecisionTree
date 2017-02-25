@@ -49,6 +49,20 @@ public:
     static Eigen::MatrixXd confusionMatrix(const vector<unsigned int> & preds, const vector<unsigned int> & labels,
                                            const int category_num,
                                            bool normalize);
+    
+    // accuracy of each category and average
+    static Eigen::VectorXd accuracyFromConfusionMatrix(const Eigen::MatrixXd & conf);
+    
+    template <class T>
+    static vector<T> range(int start, int end, int step)
+    {
+        assert((end - start) * step >= 0);
+        vector<T> ret;
+        for (int i = start; i < end; i += step) {
+            ret.push_back((T)i);
+        }
+        return ret;
+    }
 
     
 };
