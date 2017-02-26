@@ -29,14 +29,26 @@ public:
     template <class T>
     static double spatialVariance(const vector<T> & labels, const vector<unsigned int> & indices);
     
+    template <class MatrixType>
+    static double sumOfVariance(const vector<MatrixType> & labels, const int row_index,
+                                const vector<unsigned int> & indices);
+    
     template <class Type1, class Type2>
     static double spatialVariance(const vector<Type1> & labels, const vector<unsigned int> & indices, const vector<Type2> & wt);
     
     template <class T>
     static void meanStddev(const vector<T> & labels, const vector<unsigned int> & indices, T & mean, T & sigma);
     
+    // mean and standard of particular row
+    template <class matrixType, class vectorType>
+    static void rowMeanStddev(const vector<matrixType> & labels, const vector<unsigned int> & indices, const int row_index, vectorType & mean, vectorType & sigma);
+    
     template <class T>
     static void meanMedianError(const vector<T> & errors, T & mean, T & median);
+    
+    // mean error of each row of a list of matrixes
+    template <class MatrixType>
+    static void matrixMeanError(const vector<MatrixType> & errors, MatrixType & mean);
     
    // template <class T_Vector, class Type2>
     static double crossEntropy(const VectorXd & prob);

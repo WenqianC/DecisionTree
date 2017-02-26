@@ -37,6 +37,39 @@ double DTUtil::spatialVariance(const vector<T> & labels, const vector<unsigned i
     return var;
 }
 
+
+template <class MatrixType>
+double DTUtil::sumOfVariance(const vector<MatrixType> & labels, const int row_index, const vector<unsigned int> & indices)
+{
+    typedef typename MatrixType::Scalar Scalar;
+    typedef typename Eigen::Matrix<Scalar, Eigen::Dynamic, 1> ScalarVector;
+    
+    if (indices.size() <= 0) {
+        return 0.0;
+    }
+    assert(indices.size() > 0);
+    
+    ScalarVector mean = ScalarVector::Zero(labels[0].row(0).size());
+    
+    for (int i = 0; i<indices.size(); i++) {
+        int index = indices[i];
+        assert(index >= 0 && index < labels.size());
+        mean += labels[index].row(row_index);
+    }
+    mean /= indices.size();
+    
+    double var = 0.0;
+    for (int i = 0; i<indices.size(); i++) {
+        int index = indices[i];
+        assert(index >= 0 && index < labels.size());
+        ScalarVector dif = labels[index].row(row_index) - mean;
+        for (int j = 0; j<dif.size(); j++) {
+            var += dif[j] * dif[j];
+        }
+    }
+    return var;
+}
+
 template<class Type1, class Type2>
 double DTUtil::spatialVariance(const vector<Type1> & labels, const vector<unsigned int> & indices, const vector<Type2> & wt)
 {
@@ -96,6 +129,35 @@ void DTUtil::meanStddev(const vector<T> & labels, const vector<unsigned int> & i
     }
 }
 
+template <class matrixType, class vectorType>
+void DTUtil::rowMeanStddev(const vector<matrixType> & labels, const vector<unsigned int> & indices, const int row_index, vectorType & mean, vectorType & sigma)
+{
+    assert(indices.size() > 0);
+    
+    mean = vectorType::Zero(labels[0].row(0).size());
+    
+    for (int i = 0; i<indices.size(); i++) {
+        int index = indices[i];
+        assert(index >= 0 && index < labels.size());
+        mean += labels[index].row(row_index);
+    }
+    mean /= indices.size();
+    
+    sigma = vectorType::Zero(labels[0].row(0).size());
+    if (indices.size() == 1) {
+        return;
+    }
+    for (int i = 0; i<indices.size(); i++) {
+        vectorType dif = labels[indices[i]].row(row_index) - mean;
+        for (int j = 0; j<sigma.size(); j++) {
+            sigma[j] += dif[j] * dif[j];
+        }
+    }
+    for (int j = 0; j<sigma.size(); j++) {
+        sigma[j] = sqrt(fabs(sigma[j])/indices.size());
+    }
+}
+
 template <class T>
 void DTUtil::meanMedianError(const vector<T> & errors,
                                   T & mean,
@@ -120,6 +182,21 @@ void DTUtil::meanMedianError(const vector<T> & errors,
         std::sort(each_dim_data[i].begin(), each_dim_data[i].end());
         median[i] = each_dim_data[i][each_dim_data[i].size()/2];
     }
+}
+
+template <class MatrixType>
+void DTUtil::matrixMeanError(const vector<MatrixType> & errors, MatrixType & mean)
+{
+    assert(errors.size() > 0);
+    
+    const int cols  = (int)errors[0].cols();
+    const int rows = (int)errors[0].rows();
+    mean  = MatrixType::Zero(rows, cols);
+    
+    for (int i = 0; i<errors.size(); i++) {
+        mean += errors[i];
+    }
+    mean /= errors.size();
 }
 
 
@@ -198,12 +275,25 @@ template double
 DTUtil::spatialVariance(const vector<Eigen::VectorXf> & labels, const vector<unsigned int> & indices);
 
 template double
+DTUtil::sumOfVariance(const vector<Eigen::MatrixXf> & labels, const int row_index, const vector<unsigned int> & indices);
+
+template double
 DTUtil::spatialVariance(const vector<Eigen::VectorXf> & labels, const vector<unsigned int> & indices, const vector<int> & wt);
 
 template void
 DTUtil::meanStddev(const vector<Eigen::VectorXf> & labels, const vector<unsigned int> & indices, Eigen::VectorXf & mean, Eigen::VectorXf & sigma);
 
 template void
+DTUtil::rowMeanStddev(const vector<Eigen::MatrixXf> & labels, const vector<unsigned int> & indices,
+                      const int row_index, Eigen::VectorXf & mean, Eigen::VectorXf & sigma);
+
+template void
 DTUtil::meanMedianError(const vector<Eigen::VectorXf> & errors, Eigen::VectorXf & mean, Eigen::VectorXf & median);
+
+template void
+DTUtil::matrixMeanError(const vector<Eigen::MatrixXf> & errors, Eigen::MatrixXf & mean);
+
+
+
 
 
