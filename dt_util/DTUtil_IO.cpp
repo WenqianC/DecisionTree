@@ -36,6 +36,33 @@ bool DTUtil_IO::read_matrix(const char * file_name, vector<VectorXd> & data)
     return true;
 }
 
+bool DTUtil_IO::read_matrix(const char * file_name, vector<Eigen::VectorXf>& data)
+{
+    FILE *pf = fopen(file_name, "r");
+    if (!pf) {
+        printf("can not load from %s\n", file_name);
+        return false;
+    }
+    assert(pf);
+    int rows = 0;
+    int cols = 0;
+    int num = fscanf(pf, "%d %d", &rows, &cols);
+    assert(num == 2);
+    for (int i = 0; i<rows; i++) {
+        VectorXf feat = VectorXf::Zero(cols);
+        double val = 0;
+        for (int j = 0; j<cols; j++) {
+            num = fscanf(pf, "%lf", & val);
+            assert(num == 1);
+            feat[j] = val;
+        }
+        data.push_back(feat);
+    }
+    fclose(pf);
+    printf("read data: %lu %lu \n", data.size(), data[0].size());
+    return true;
+}
+
 bool DTUtil_IO::read_matrix(const char * file_name, Eigen::MatrixXd & data)
 {
     FILE *pf = fopen(file_name, "r");

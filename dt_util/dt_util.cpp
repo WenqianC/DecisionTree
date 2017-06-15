@@ -7,6 +7,11 @@
 //
 
 #include "dt_util.h"
+#include <Eigen/QR>
+#include <iostream>
+
+using std::cout;
+using std::endl;
 
 template <class T>
 double DTUtil::spatialVariance(const vector<T> & labels, const vector<unsigned int> & indices)
@@ -35,6 +40,44 @@ double DTUtil::spatialVariance(const vector<T> & labels, const vector<unsigned i
         }
     }
     return var;
+}
+
+template<class T>
+double DTUtil::fullVariance(const vector<T>& labels, const vector<unsigned int> & indices)
+{
+    assert(indices.size() > 1);
+    typedef typename T::Scalar Scalar;
+    typedef typename Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> MatrixType;
+    
+    double loss = 0.0;
+    
+    const int length = (int)labels[0].size();
+    MatrixType sampled_data(indices.size(), length);
+    for (unsigned i = 0; i<indices.size(); i++) {
+        unsigned int index = indices[i];
+        assert(index >= 0 && index < labels.size());
+        sampled_data.row(i) = labels[index];
+    }    
+    
+    MatrixType centered = sampled_data.rowwise() - sampled_data.colwise().mean();
+    MatrixType cov = (centered.adjoint() * centered) / sampled_data.rows();
+    
+    Eigen::ColPivHouseholderQR<MatrixType> qr(cov);
+    if (qr.rank() == length) {
+        loss = qr.logAbsDeterminant();
+    }
+    else {
+        loss = qr.logAbsDeterminant();
+        // avoid underflow
+        if (std::isnan(loss) || std::isinf(loss)) {
+            loss = log(0.0000001);
+        }
+        //printf("Warning: full variance underflow, use a small number log(0.0000001) instead. Sample number %ld\n", indices.size());
+        //cout<<"covariance matrix \n"<<cov<<endl;
+        //printf("logAbsDeterminant vs log(0.0000001): %lf, %lf\n", qr.logAbsDeterminant(), log(0.0000001));
+    }
+    
+    return loss;
 }
 
 
@@ -127,6 +170,37 @@ void DTUtil::meanStddev(const vector<T> & labels, const vector<unsigned int> & i
     for (int j = 0; j<sigma.size(); j++) {
         sigma[j] = sqrt(fabs(sigma[j])/indices.size());
     }
+}
+
+template <class T>
+T DTUtil::mean(const vector<T> & data, const vector<unsigned int> & indices)
+{
+    assert(indices.size() > 0);
+    
+    T m = T::Zero(data[0].size());
+    
+    for (int i = 0; i<indices.size(); i++) {
+        int index = indices[i];
+        assert(index >= 0 && index < data.size());
+        m += data[index];
+    }
+    m /= indices.size();
+    
+    return m;
+}
+
+template <class T>
+T DTUtil::mean(const vector<T> & data)
+{
+    assert(data.size() > 0);
+    
+    T m = T::Zero(data[0].size());
+    
+    for (int i = 0; i<data.size(); i++) {
+        m += data[i];
+    }
+    m /= data.size();
+    return m;
 }
 
 template <class matrixType, class vectorType>
@@ -275,6 +349,9 @@ template double
 DTUtil::spatialVariance(const vector<Eigen::VectorXf> & labels, const vector<unsigned int> & indices);
 
 template double
+DTUtil::fullVariance(const vector<Eigen::VectorXf>& labels, const vector<unsigned int> & indices);
+
+template double
 DTUtil::sumOfVariance(const vector<Eigen::MatrixXf> & labels, const int row_index, const vector<unsigned int> & indices);
 
 template double
@@ -282,6 +359,12 @@ DTUtil::spatialVariance(const vector<Eigen::VectorXf> & labels, const vector<uns
 
 template void
 DTUtil::meanStddev(const vector<Eigen::VectorXf> & labels, const vector<unsigned int> & indices, Eigen::VectorXf & mean, Eigen::VectorXf & sigma);
+
+template Eigen::VectorXf
+DTUtil::mean(const vector<Eigen::VectorXf> & data, const vector<unsigned int> & indices);
+
+template Eigen::VectorXf
+DTUtil::mean(const vector<Eigen::VectorXf> & data);
 
 template void
 DTUtil::rowMeanStddev(const vector<Eigen::MatrixXf> & labels, const vector<unsigned int> & indices,

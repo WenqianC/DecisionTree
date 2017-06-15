@@ -9,7 +9,7 @@
 #include "bt_rnd_tree.h"
 #include "bt_rnd_tree_node.h"
 #include "DTRandom.h"
-#include "cvxUtil.hpp"
+#include "cvx_util.hpp"
 #include "BTDTRUtil.h"
 #include <iostream>
 

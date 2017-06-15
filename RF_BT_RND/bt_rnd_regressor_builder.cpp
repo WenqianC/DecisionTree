@@ -10,7 +10,7 @@
 #include "bt_rnd_regressor_builder.h"
 #include "DTRandom.h"
 #include "BTDTRUtil.h"
-#include "cvxIO.hpp"
+#include "cvx_io.hpp"
 
 using std::cout;
 using std::endl;

@@ -7,10 +7,10 @@
 //
 
 #include "bt_rnd_util.h"
-#include "cvxIO.hpp"
+#include "cvx_io.hpp"
 #include "ms7ScenesUtil.hpp"
 #include "cvxWalshHadamard.h"
-#include "cvxUtil.hpp"
+#include "cvx_util.hpp"
 
 
 void

@@ -9,7 +9,7 @@
 #include <iostream>
 #include "cvxImage_310.hpp"
 #include <string>
-#include "cvxIO.hpp"
+#include "cvx_io.hpp"
 #include <unordered_map>
 #include "ms7ScenesUtil.hpp"
 #include "bt_rnd_regressor_builder.h"
@@ -17,7 +17,7 @@
 
 using std::string;
 
-#if 1
+#if 0
 
 static void help()
 {

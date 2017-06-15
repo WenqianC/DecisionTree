@@ -34,17 +34,6 @@ public:
     BTRNDRegressor(){label_dim_ = 0;}
     ~BTRNDRegressor(){}  // @todo release node
     
-    /*
-    bool predict(const Eigen::VectorXf & feature,
-                 const int maxCheck,
-                 Eigen::VectorXf & pred) const;
-    
-    // return every prediction from every tree
-    bool predict(const Eigen::VectorXf & feature,
-                 const int maxCheck,
-                 vector<Eigen::VectorXf> & predictions) const;
-     */
-    
     // return every prediction and distance from every tree
     bool predict(const Feature & feature,
                  const cv::Mat & rgb_image,

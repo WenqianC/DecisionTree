@@ -10,7 +10,7 @@
 #include "bt_rnd_tree.h"
 #include "yael_io.h"
 #include "bt_rnd_tree_node.h"
-#include "cvxUtil.hpp"
+#include "cvx_util.hpp"
 
 
 bool BTRNDRegressor::predict(const Feature & feature,

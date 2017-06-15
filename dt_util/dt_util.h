@@ -29,6 +29,10 @@ public:
     template <class T>
     static double spatialVariance(const vector<T> & labels, const vector<unsigned int> & indices);
     
+    // full variance of Gaussian model
+    template <class T>
+    static double fullVariance(const vector<T>& labels, const vector<unsigned int> & indices);
+    
     template <class MatrixType>
     static double sumOfVariance(const vector<MatrixType> & labels, const int row_index,
                                 const vector<unsigned int> & indices);
@@ -39,9 +43,15 @@ public:
     template <class T>
     static void meanStddev(const vector<T> & labels, const vector<unsigned int> & indices, T & mean, T & sigma);
     
+    template <class T>
+    static T mean(const vector<T> & data, const vector<unsigned int> & indices);
+    
+    template <class T>
+    static T mean(const vector<T> & data);
+    
     // mean and standard of particular row
     template <class matrixType, class vectorType>
-    static void rowMeanStddev(const vector<matrixType> & labels, const vector<unsigned int> & indices, const int row_index, vectorType & mean, vectorType & sigma);
+    static void rowMeanStddev(const vector<matrixType> & labels, const vector<unsigned int> & indices, const int row_index, vectorType & mean,      vectorType & sigma);
     
     template <class T>
     static void meanMedianError(const vector<T> & errors, T & mean, T & median);
@@ -58,7 +68,8 @@ public:
     static bool isSameLabel(const vector<unsigned int> & labels, const vector<unsigned int> & indices);
     
     
-    static Eigen::MatrixXd confusionMatrix(const vector<unsigned int> & preds, const vector<unsigned int> & labels,
+    static Eigen::MatrixXd confusionMatrix(const vector<unsigned int> & predictions,
+                                           const vector<unsigned int> & labels,
                                            const int category_num,
                                            bool normalize);
     

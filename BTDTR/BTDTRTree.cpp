@@ -153,11 +153,11 @@ bool BTDTRTree::configureNode(const vector<VectorXf> & features,
     
     // check standard deviation
     if (reach_leaf == false && depth > max_depth/2) {
-        double variance = BTDTRUtil::spatial_variance<Eigen::VectorXf>(labels, indices);
-        double std_dev = sqrt(variance/indices.size());
-        if (std_dev < min_split_stddev) {
-            reach_leaf = true;
-        }
+        Eigen::VectorXf mean;
+        Eigen::VectorXf std_dev;
+        BTDTRUtil::mean_stddev<Eigen::VectorXf>(labels, indices, mean, std_dev);
+        // standard deviation in every dimension is smaller than the threshold
+        reach_leaf = (std_dev.array() < min_split_stddev).all();
     }    
     
     // satisfy leaf node

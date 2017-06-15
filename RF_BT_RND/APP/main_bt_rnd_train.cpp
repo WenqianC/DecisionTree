@@ -10,7 +10,7 @@
 #include <iostream>
 #include "cvxImage_310.hpp"
 #include <string>
-#include "cvxIO.hpp"
+#include "cvx_io.hpp"
 #include "ms7ScenesUtil.hpp"
 #include "bt_rnd_regressor_builder.h"
 #include "bt_rnd_regressor.h"

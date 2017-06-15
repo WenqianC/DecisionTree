@@ -42,31 +42,8 @@ public:
                     const vector<string> & pose_files,
                     const int max_check,
                     const bool release_memory = true,
-                    const char *model_file_name = NULL) const;
+                    const char *model_file_name = NULL) const;  
     
-    /*
-    //features: a group of features, each group is from a single image
-    //labels  : corresponding label
-    //maxCheck: leaf number in backtracking
-    bool buildModel(Regressor & model,
-                    const vector< vector<VectorXf> > & features,
-                    const vector< vector<VectorXf> > & labels,
-                    const int max_num_frames,
-                    const int maxCheck,
-                    const char * model_file_name = NULL) const;
-    //features: a group of features, each group is from a single image
-    //labels  : corresponding label
-    //maxCheck: leaf number in backtracking
-    //boostingRatio: percentage of re-training frames that are
-    //               directly from cross validation test
-    bool buildModel(Regressor & model,
-                    const vector< vector<VectorXf> > & features,
-                    const vector< vector<VectorXf> > & labels,
-                    const int sampleFrameNum,
-                    const int maxCheck,
-                    const float boostingRatio,
-                    const char * model_file_name = NULL) const;
-     */
     
 private:
     bool testValidataionError(const BTRNDTree & tree,

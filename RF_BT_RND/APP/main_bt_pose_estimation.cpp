@@ -10,22 +10,22 @@
 #include <vector>
 #include <string>
 #include "cvxImage_310.hpp"
-#include "cvxIO.hpp"
-#include "cvxPoseEstimation.hpp"
+#include "cvx_io.hpp"
+#include "cvx_pose_estimation.hpp"
 #include "ms7ScenesUtil.hpp"
 #include "dataset_param.h"
 
 
 using namespace::std;
 
-#if 0
+#if 1
 
 static void help()
 {
-    printf("program  datasetFile   predictionFile inlierFeatDist inlierThreshold angleThreshold distanceThreshold saveFilePrefix           \n");
-    printf("BT_Pose  dataset.txt   result/*.txt   0.3            0.1             5              0.05              estimaged_poses/camera \n");
+    printf("program  datasetFile   predictionFile sampleNumber inlierThreshold angleThreshold distanceThreshold saveFilePrefix           \n");
+    printf("BT_Pose  dataset.txt   result/*.txt   500          0.1             5              0.05              estimaged_poses/camera \n");
     printf("predictionFile: predicted 3D location files\n");
-    printf("inlierFeatDist: inlier feature distance threshold, not use in this version.\n");
+    printf("sampleNumber: sample numbers in each RANSAC.\n");
     printf("inlierThreshold: 3D location inlier threshold, in meter\n");
     printf("angleThreshold: degree\n");
     printf("distanceThreshold: meter \n");
@@ -43,7 +43,7 @@ int main(int argc, const char * argv[])
     
     const char * dataset_param_filename = argv[1];
     const char *prediction_folder        = argv[2];
-    const double inlierFeatDist = strtod(argv[3], NULL);
+    const int sample_num = (int)strtod(argv[3], NULL);
     const double inlierThreshold = strtod(argv[4], NULL);
     const double angleThreshold    = strtod(argv[5], NULL);
     const double distanceThreshold = strtod(argv[6], NULL);
@@ -126,6 +126,7 @@ int main(int argc, const char * argv[])
         // estimate camera pose using Kabsch
         PreemptiveRANSAC3DParameter param;
         param.dis_threshold_ = inlierThreshold;
+        param.sample_number_ = sample_num;
         bool isEstimated = CvxPoseEstimation::preemptiveRANSAC3DOneToMany(valid_camera_pts, valid_wld_pts_candidate, param, estimated_camera_pose);
         if (isEstimated) {
             double angle_dis = 0.0;
