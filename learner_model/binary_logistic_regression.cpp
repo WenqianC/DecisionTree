@@ -7,11 +7,16 @@
 //
 
 #include "binary_logistic_regression.h"
+#include <iostream>
+
+using std::cout;
+using std::endl;
 
 namespace dt {
     static double sigmod(double x){
         return 1.0/(1.0+exp(-x));
     }
+    
     static double accuracy(const vector<unsigned int>& labels,
                            const vector<unsigned int>& predictions)
     {
@@ -24,6 +29,19 @@ namespace dt {
         }
         return n_fitted/labels.size();
     }
+    
+    static double crossEntropy(const vector<unsigned int>& labels,
+                               const vector<double>& probability)
+    {
+        double cross_entropy = 0.0;
+        for (int i = 0; i<labels.size(); i++) {
+            double prob = probability[i];
+            cross_entropy += - (labels[i] * log(prob) + (1.0 - labels[i])*log(1.0 - prob));
+        }
+        cross_entropy /= labels.size();
+        return cross_entropy;
+    }
+    
     BinaryLogisticRegression::~BinaryLogisticRegression()
     {
         
@@ -42,59 +60,60 @@ namespace dt {
         bias_ = 0.0f;
         
         // the convergence rate
-        vector<unsigned int> predictions(n_data);
+        vector<double> predictions(n_data);
         Eigen::VectorXf dw = Eigen::VectorXf::Zero(n_dim);
         float d_bias = 0.0f;
-        double best_acc = 0.0f;
+        double best_loss = std::numeric_limits<double>::max();
+        double pre_loss = INT_MAX;
         Eigen::VectorXf best_w = Eigen::VectorXf::Zero(n_dim);
         float best_bias = 0.0f;
+        
         for (int iter = 0; iter < max_iters; iter++) {
             // step 1. prediction by previsou weights
             for (int i = 0; i<features.size(); i++) {
                 double phi = features[i].dot(weight_) + bias_;
-                double a = sigmod(phi);
-                if (a < 0.5) {
-                    predictions[i] = 0;
-                }
-                else {
-                    predictions[i] = 1;
-                }
+                double prob = sigmod(phi);
+                predictions[i] = prob;
             }
             // step 2. update weights
             dw.setZero();
             d_bias = 0.0f;
             for (int i = 0; i<predictions.size(); i++) {
-                int dif = labels[i] - predictions[i];
+                double dif = predictions[i] - labels[i];
                 if (dif != 0) {
                     // update each weight
-                    for (int j = 0; j<n_dim; j++) {
-                        dw[j] += dif * features[i][j];
-                    }
-                    d_bias += 1.0f;
+                    dw += dif * features[i];
+                    d_bias += dif * 0.5;
                 }
             }
             
-            double acc = accuracy(labels, predictions);
-            if (acc > best_acc) {
-                best_acc = acc;
+            double loss = crossEntropy(labels, predictions);  // data fitting term
+            loss += 0.5 * lambda_ * weight_.norm();           // regularization term
+            if (loss < best_loss) {
+                best_loss = loss;
                 best_w = weight_;
                 best_bias = bias_;
             }
             
-            Eigen::VectorXf cur_w = weight_ + learning_rate_ * dw - learning_rate_ * lambda_ * weight_;
-            float cur_bias = bias_ + learning_rate_ * d_bias;
+            // step 3, early stop
+           // double loss_update = loss - pre_loss;
             
-            // step 3, early stop  ?
+            Eigen::VectorXf cur_w = weight_ - learning_rate_ * dw - learning_rate_ * lambda_ * weight_;
+            float cur_bias = bias_ - learning_rate_ * d_bias;
             
-            //printf("iteration %d, learning rate %lf, weight update %f, accuracy %lf\n", iter, learning_rate_, dw.norm()/n_data, acc);
+            
+            
+           // printf("iteration: %d, loss: %lf loss update: %lf \n", iter, loss, loss_update);
             
             // step 3
             weight_ = cur_w;
             bias_ = cur_bias;
+            pre_loss = loss;
+            
         }
         weight_ = best_w;
         bias_ = best_bias;
-        printf("training accuracy %lf\n", best_acc);
+        //printf("training best loss %lf\n", best_loss);
         return true;
     }
     

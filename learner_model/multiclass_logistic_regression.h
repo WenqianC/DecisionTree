@@ -1,51 +1,49 @@
 //
-//  binary_logistic_regression.h
+//  multiclass_logistic_regression.h
 //  Classifer_RF
 //
-//  Created by jimmy on 2017-06-15.
+//  Created by jimmy on 2017-06-16.
 //  Copyright (c) 2017 Nowhere Planet. All rights reserved.
 //
 
-#ifndef __Classifer_RF__binary_logistic_regression__
-#define __Classifer_RF__binary_logistic_regression__
+#ifndef __Classifer_RF__multiclass_logistic_regression__
+#define __Classifer_RF__multiclass_logistic_regression__
 
-// binary logistic regression
-// PRML by M.Bishop page 206,
-// http://www.hlt.utdallas.edu/~vgogate/ml/2015s/lectures/lr-nb-lec6.pdf
 #include <stdio.h>
 #include <Eigen/Dense>
 #include <vector>
 
 using std::vector;
 namespace dt {
-    class BinaryLogisticRegression
+    class MultiClassLogisticRegression
     {
     public:
-        BinaryLogisticRegression()
+        MultiClassLogisticRegression()
         {
             learning_rate_ = 0.0001;
             lambda_ = 0.001;
         }
-        ~BinaryLogisticRegression();
+        ~MultiClassLogisticRegression();
         
-        // features: input feature
-        // labels: a sequence of 0, 1
+        
         bool fit(const vector<Eigen::VectorXf> & features,
                  const vector<unsigned int> & labels,
+                 const int n_category,
                  const int max_iters = 500);
         
         bool predict(const vector<Eigen::VectorXf> & features,
                      vector<unsigned int> & predictions);
-                     
+        
         
     private:
         double learning_rate_;
         double lambda_;          // regularization term
+        int num_category_;
         
-        Eigen::VectorXf weight_;
-        float bias_;
+        Eigen::MatrixXf weight_;   // m x n where m is feature dimension and n is the number of categories
+        Eigen::VectorXf bias_;     // n
     };
 } // dt: decision tree
 
 
-#endif /* defined(__Classifer_RF__binary_logistic_regression__) */
+#endif /* defined(__Classifer_RF__multiclass_logistic_regression__) */
