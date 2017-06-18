@@ -29,6 +29,7 @@ static void help()
 
 int main(int argc, const char * argv[])
 {
+    /*
     if (argc != 8) {
         printf("argc is %d, should be 8\n", argc);
         help();
@@ -44,6 +45,15 @@ int main(int argc, const char * argv[])
     const char * prefix = argv[7];
     
     assert(num_random_sample > 100);
+     */
+    const char * model_file = "/Users/jimmy/Desktop/IROS_app/model/kitchen_model.txt";
+    const char * rgb_image_file = "/Users/jimmy/Desktop/IROS_app/apt1/kitchen/test_files/rgb_image_list.txt";
+    const char * depth_image_file = "/Users/jimmy/Desktop/IROS_app/apt1/kitchen/test_files/depth_image_list.txt";
+    const char * camera_to_wld_pose_file = "/Users/jimmy/Desktop/IROS_app/apt1/kitchen/test_files/camera_pose_list.txt";
+    const int num_random_sample = 5000;
+    const int max_check = 16;
+    const char * prefix = "temp";
+    
     
     vector<string> rgb_files   = Ms7ScenesUtil::read_file_names(rgb_image_file);
     vector<string> depth_files = Ms7ScenesUtil::read_file_names(depth_image_file);
@@ -54,7 +64,7 @@ int main(int argc, const char * argv[])
     
     // read model
     BTRNDRegressor model;
-    bool is_read = model.load(model_file);
+    bool is_read = model.loadModel(model_file);
     if (!is_read) {
         printf("Error: can not read from file %s\n", model_file);
         return -1;
@@ -77,7 +87,7 @@ int main(int argc, const char * argv[])
     const int wh_kernel_size = tree_param.wh_kernel_size_;
     const bool is_use_depth = tree_param.is_use_depth_;
     
-    using FeatureType = SCRFRandomFeature;
+    using FeatureType = SCRFRandomSample;
     // read images, and predict one by one
     for (int k = 0; k<rgb_files.size(); k++) {
         const char *cur_rgb_img_file     = rgb_files[k].c_str();

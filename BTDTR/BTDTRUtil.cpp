@@ -10,7 +10,7 @@
 
 
 template <class T>
-double BTDTRUtil::spatial_variance(const vector<T> & labels, const vector<unsigned int> & indices)
+double BTDTRUtil::spatialVariance(const vector<T> & labels, const vector<unsigned int> & indices)
 {
     if (indices.size() <= 0) {
         return 0.0;
@@ -39,7 +39,7 @@ double BTDTRUtil::spatial_variance(const vector<T> & labels, const vector<unsign
 }
 
 template <class T>
-void BTDTRUtil::mean_stddev(const vector<T> & labels, const vector<unsigned int> & indices, T & mean, T & sigma)
+void BTDTRUtil::meanStddev(const vector<T> & labels, const vector<unsigned int> & indices, T & mean, T & sigma)
 {
     assert(indices.size() > 0);
     
@@ -163,9 +163,11 @@ double BTDTRUtil::inbalance_loss(const int leftNodeSize, const int rightNodeSize
 
 
 
-template double BTDTRUtil::spatial_variance(const vector<Eigen::VectorXf> & labels, const vector<unsigned int> & indices);
+template double BTDTRUtil::spatialVariance(const vector<Eigen::VectorXf> & labels, const vector<unsigned int> & indices);
 
-template void BTDTRUtil::mean_stddev(const vector<Eigen::VectorXf> & labels, const vector<unsigned int> & indices, Eigen::VectorXf & mean, Eigen::VectorXf & sigma);
+template void BTDTRUtil::meanStddev(const vector<Eigen::VectorXf> & labels,
+                                    const vector<unsigned int> & indices,
+                                    Eigen::VectorXf & mean, Eigen::VectorXf & sigma);
 
 template void BTDTRUtil::mean_stddev(const vector<Eigen::VectorXf>& labels, Eigen::VectorXf & mean, Eigen::VectorXf & sigma);
 

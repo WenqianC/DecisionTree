@@ -19,18 +19,20 @@
 using Eigen::VectorXf;
 using std::vector;
 
-// training sample from Scene Coordinate Regression Forests (SCRF)
-class SCRFRandomFeature
+// training sample using Scene Coordinate Regression Forests (SCRF) method
+// Feature location and local descriptor,
+// The actual random feature is learned in RandomSplitParameter
+class SCRFRandomSample
 {
 public:
     Eigen::Vector2f p2d_;    // 2d location (x, y)
-    double inv_depth_;       // inverted gradient, optional in practice
-    int image_index_;        // image index   
+    double inv_depth_;       // inverted depth, optional
+    int image_index_;        // image index, used to query image during training  
     
     Eigen::VectorXf x_descriptor_; // (SIFT, WH) descriptor, default value is 1/64 or 1/128.0
     
 public:
-    SCRFRandomFeature()
+    SCRFRandomSample()
     {
         image_index_ = 0;
         inv_depth_ = 1.0;
@@ -42,8 +44,9 @@ public:
 };
 
 // random feature split parameter
-struct RandomSplitParameter
+class RandomSplitParameter
 {
+public:
     int split_channles_[2];      // rgb image channel, c1 and c2
     Eigen::Vector2f offset_;     // image location offset, [x, y]
     double threshold_;           // threshold of splitting. store result
@@ -161,10 +164,10 @@ public:
         max_pixel_offset_ = imap[string("max_pixel_offset")];
         pixel_offset_candidate_num_ = imap[string("pixel_offset_candidate_num")];
         split_candidate_num_ = imap[string("split_candidate_num")];
+        wh_kernel_size_ = imap[string("wh_kernel_size")];
+        
         verbose_ = imap[string("verbose")];
         verbose_leaf_ = imap[string("verbose_leaf")];
-        
-        wh_kernel_size_ = imap[string("wh_kernel_size")];        
         return true;
     }
 
@@ -184,9 +187,9 @@ public:
         
         fprintf(pf, "max_pixel_offset %d\n", max_pixel_offset_);
         fprintf(pf, "pixel_offset_candidate_num %d\n", pixel_offset_candidate_num_);
-        fprintf(pf, "split_candidate_num %d\n\n", split_candidate_num_);
-        
+        fprintf(pf, "split_candidate_num %d\n", split_candidate_num_);
         fprintf(pf, "wh_kernel_size %d\n\n", wh_kernel_size_);
+        
         fprintf(pf, "verbose %d\n", (int)verbose_);
         fprintf(pf, "verbose_leaf %d\n\n", (int)verbose_leaf_);
         return true;
@@ -203,6 +206,13 @@ class BTRNDUtil
 {
 public:
     
+    // sample SCRF features in an RGB-D image using ground truth camera pose
+    // num_sample: around 5000
+    // image_index: image Id
+    // dataset_param: dataset parameter such as focal length
+    // use_depth: if use depth image, Set it false, if use RGB features
+    // features: output, SCRF feature location
+    // labels: output, 3D location
     static void
     randomSampleFromRgbdImages(const char * rgb_img_file,
                                const char * depth_img_file,
@@ -212,7 +222,7 @@ public:
                                const DatasetParameter & dataset_param,
                                const bool use_depth,
                                const bool verbose,                               
-                               vector<SCRFRandomFeature> & features,
+                               vector<SCRFRandomSample> & features,
                                vector<Eigen::VectorXf> & labels);
     
     
@@ -220,7 +230,7 @@ public:
     // Walsh Hadamard feature wihtou first pattern
     static void
     extractWHFeatureFromRgbImages(const char * rgb_img_file,
-                                  vector<SCRFRandomFeature> & features,  // output
+                                  vector<SCRFRandomSample> & features,  // output
                                   const int single_channel_dim,
                                   const bool verbose);
     
@@ -233,7 +243,7 @@ public:
     // without first pattern
     static void
     extractDepthAdaptiveWHFeatureFromRgbImages(const char * rgb_img_file,
-                                               vector<SCRFRandomFeature> & samples,
+                                               vector<SCRFRandomSample> & samples,
                                                const int single_channel_dim,
                                                const int pyramid_level,
                                                const double default_depth = 1.0,
@@ -243,21 +253,22 @@ public:
     
     
 private:
-    // random sample training data from rgbd images
+    // implementation of randomSampleFromRgbdImages
+   
     static void
-    randomSampleFromRgbdImages(const char * rgb_img_file,
-                               const char * depth_img_file,
-                               const char * camera_pose_file,
-                               const int num_sample,
-                               const int image_index,
-                               const double depth_factor,
-                               const cv::Mat calibration_matrix,
-                               const double min_depth,
-                               const double max_depth,
-                               const bool use_depth,
-                               const bool verbose,
-                               vector<SCRFRandomFeature> & features,
-                               vector<Eigen::VectorXf> & labels);
+    randomSampleFromRgbdImagesImpl(const char * rgb_img_file,
+                                   const char * depth_img_file,
+                                   const char * camera_pose_file,
+                                   const int num_sample,
+                                   const int image_index,
+                                   const double depth_factor,
+                                   const cv::Mat calibration_matrix,
+                                   const double min_depth,
+                                   const double max_depth,
+                                   const bool use_depth,
+                                   const bool verbose,
+                                   vector<SCRFRandomSample> & features,
+                                   vector<Eigen::VectorXf> & labels);
 
     
     

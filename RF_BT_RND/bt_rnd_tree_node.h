@@ -1,7 +1,3 @@
-//
-//  bt_rnd_tree_node.h
-//  RGBD_RF
-//
 //  Created by jimmy on 2017-01-18.
 //  Copyright (c) 2017 Nowhere Planet. All rights reserved.
 //
@@ -27,37 +23,40 @@ private:
     typedef BTRNDTreeNode* NodePtr;
     typedef RandomSplitParameter SplitParameter;
 
-    BTRNDTreeNode *left_child_;
-    BTRNDTreeNode *right_child_;
-    int depth_;
-    bool is_leaf_;
-    
-    // split parameter
+    BTRNDTreeNode *left_child_;  // left child node
+    BTRNDTreeNode *right_child_; // right child node
+    int depth_;                  // tree depth from 0
+    bool is_leaf_;               // indicator of leaf node
+   
+    // non-leaf node parameter
+    // aka, weaker learner model
     SplitParameter split_param_;
     
-    // leaf node property
-    VectorXf label_mean_;      // label
-    VectorXf label_stddev_;
-    VectorXf feat_mean_;
-    int index_;               // leaf node index, in-order traversal, leaf node only
+    // leaf node parameter
+    VectorXf label_mean_;      // mean of labels, e.g., 3D location
+    VectorXf label_stddev_;    // standard deviation of labels,
+                               // if it is too large, needs a deeper tree
+    VectorXf feat_mean_;       // mean value of local descriptors, e.g., WHT features
+    int index_;                // leaf node index from 0, for save/store leaf node
     
 public:
-    BTRNDTreeNode(int depth)
-    {
-        left_child_ = NULL;
-        right_child_ = NULL;
-        depth_   = depth;
-        is_leaf_ = false;
-        index_ = -1;
-    }
+    // constructor
+    BTRNDTreeNode(int depth);
+    // de-constructor, release memory
     ~BTRNDTreeNode();
     
-    static bool writeTree(const char *fileName, const NodePtr root, const int leafNodeNum);
-    static bool readTree(const char *fileName, NodePtr & root, int &leafNodeNum);
+    // write a node to a .txt file
+    static bool writeTree(const char *file_name, const NodePtr root,
+                          const int n_leaf_node, const int label_dim);
+    // read a tree from a .txt file
+    static bool readTree(const char *file_name, NodePtr & root,
+                         int &n_leaf_node);
     
 private:
+    // write a single node
     static void writeNode(FILE *pf, const NodePtr node);
-    static void readNode(FILE *pf, NodePtr & node);
+    // read a single node
+    static void readNode(FILE *pf, NodePtr & node, const int label_dim);
 };
 
 

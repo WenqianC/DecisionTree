@@ -13,7 +13,17 @@
 #include "cvx_util.hpp"
 
 
-bool BTRNDRegressor::predict(const Feature & feature,
+BTRNDRegressor::BTRNDRegressor()
+{
+    label_dim_ = 3;
+}
+
+BTRNDRegressor::~BTRNDRegressor()
+{
+    // @todo release memory in each tree
+}
+
+bool BTRNDRegressor::predict(const FeatureType & feature,
                              const cv::Mat & rgb_image,
                              const int max_check,
                              vector<Eigen::VectorXf> & predictions,
@@ -23,6 +33,7 @@ bool BTRNDRegressor::predict(const Feature & feature,
     assert(predictions.size() == 0);
     assert(dists.size() == 0);
     
+    // Step 1: predict from each tree
     vector<Eigen::VectorXf> unordered_predictions;
     vector<float> unordered_dists;
     for (int i = 0; i<trees_.size(); i++) {
@@ -35,7 +46,7 @@ bool BTRNDRegressor::predict(const Feature & feature,
         }
     }
     
-    // order by color distance
+    // Step 2: ordered by local patch feature distance
     vector<size_t> sortIndexes = CvxUtil::sortIndices<float>(unordered_dists);
     for (int i = 0; i<sortIndexes.size(); i++) {
         predictions.push_back(unordered_predictions[sortIndexes[i]]);
@@ -49,7 +60,7 @@ bool BTRNDRegressor::predict(const Feature & feature,
 
 const BTRNDTreeParameter & BTRNDRegressor::getTreeParameter(void) const
 {
-    return reg_tree_param_;
+    return tree_param_;
 }
 
 const DatasetParameter & BTRNDRegressor::getDatasetParameter(void) const
@@ -62,90 +73,96 @@ const BTRNDTree * BTRNDRegressor::getTree(int index) const
     return trees_[index];
 }
 
-bool BTRNDRegressor::save(const char *fileName) const
+bool BTRNDRegressor::saveModel(const char *file_name) const
 {
     assert(trees_.size() > 0);
-    // write tree number and tree files to file Name
-    FILE *pf = fopen(fileName, "w");
+    assert(strlen(file_name) < 1000);
+    
+    // write forest and tree files
+    FILE *pf = fopen(file_name, "w");
     if(!pf) {
-        printf("Error: can not open file %s\n", fileName);
+        printf("Error: can not open file %s\n", file_name);
         return false;
     }
     fprintf(pf, "%d\n", label_dim_);
+    assert(label_dim_ > 0);
+    
+    // Step 1: dataset parameter e.g., 4 Scenes dataset
     dataset_param_.writeToFile(pf);
-    reg_tree_param_.writeToFile(pf);
-    vector<string> tree_files;
-    string baseName = string(fileName);
-    baseName = baseName.substr(0, baseName.size()-4);
-    for (int i = 0; i<trees_.size(); i++) {
-        char buf[1024] = {NULL};
-        sprintf(buf, "_%08d", i);
-        string fileName = baseName + string(buf) + string(".txt");
-        fprintf(pf, "%s\n", fileName.c_str());
-        tree_files.push_back(fileName);
-    }
+    // Step 2: tree parameter
+    tree_param_.writeToFile(pf);
     
-    // leaf node feature
-    vector<string> leaf_node_files;
+    // Step 3: store trees
+    // Each tree has two parts:
+    // 1. tree structure, store in tree_file
+    // 2. local patch descriptor in leaf node, store in leaf_node_file
+    string base_name = string(file_name);  // model name without postfix, e.g., '.txt'
+    base_name = base_name.substr(0, base_name.size()-4);
+    
+    // tree structure file
     for (int i = 0; i<trees_.size(); i++) {
-        char buf[1024] = {NULL};
-        sprintf(buf, "_%08d", i);
-        string fileName = baseName + string(buf) + string(".fvec");
-        fprintf(pf, "%s\n", fileName.c_str());
-        leaf_node_files.push_back(fileName);
-    }
-    for (int i = 0; i<trees_.size(); i++) {
+        char tree_file_name[1024] = {NULL};
+        char leaf_file_name[1024] = {NULL};
+        sprintf(tree_file_name, "%s_%08d.txt", base_name.c_str(), i);
+        sprintf(leaf_file_name, "%s_%08d.fvec", base_name.c_str(), i);
+        fprintf(pf, "%s\n", tree_file_name);
+        fprintf(pf, "%s\n", leaf_file_name);
+        
         if (trees_[i]) {
-            Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> data;
+            // 1. write tree structure
+            BTRNDTreeNode::writeTree(tree_file_name,
+                                     trees_[i]->root_,
+                                     trees_[i]->leaf_node_num_,
+                                     label_dim_);
+            
+            // 2. write leaf descriptor
+            Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> leaf_descriptor; // temporal data
             // get descriptors from leaf node
-            trees_[i]->getLeafNodeDescriptor(data);
-            YaelIO::write_fvecs_file(leaf_node_files[i].c_str(), data);
+            trees_[i]->getLeafNodeDescriptor(leaf_descriptor);
+            // store as binary file
+            YaelIO::write_fvecs_file(leaf_file_name, leaf_descriptor);
         }
     }
     
-    for (int i = 0; i<trees_.size(); i++) {
-        if (trees_[i]) {
-            BTRNDTreeNode::writeTree(tree_files[i].c_str(), trees_[i]->root_, trees_[i]->leaf_node_num_);
-        }
-    }
     fclose(pf);
-    printf("save to %s\n", fileName);
+    printf("save to %s\n", file_name);
     return true;
 }
 
-bool BTRNDRegressor::load(const char *fileName)
+bool BTRNDRegressor::loadModel(const char *model_file_name)
 {
-    FILE *pf = fopen(fileName, "r");
+    FILE *pf = fopen(model_file_name, "r");
     if (!pf) {
-        printf("Error: can not open file %s\n", fileName);
+        printf("Error: can not read file %s\n", model_file_name);
         return false;
     }
     
     int ret_num = fscanf(pf, "%d", &label_dim_);
     assert(ret_num == 1);
+    assert(label_dim_ > 0);
     
     bool is_read = dataset_param_.readFromFile(pf);
     assert(is_read);
     dataset_param_.printSelf();
     
-    is_read = reg_tree_param_.readFromFile(pf);
+    is_read = tree_param_.readFromFile(pf);
     assert(is_read);
-    reg_tree_param_.printSelf();
+    tree_param_.printSelf();
     
-    // read tree file
+    // read tree file and leaf node descriptor file
     vector<string> treeFiles;
-    for (int i = 0; i<reg_tree_param_.tree_num_; i++) {
-        char buf[1024] = {NULL};
-        fscanf(pf, "%s", buf);
-        treeFiles.push_back(string(buf));
-    }
-    
-    // read leaf node descriptor file
     vector<string> leaf_node_files;
-    for (int i = 0; i<reg_tree_param_.tree_num_; i++) {
-        char buf[1024] = {NULL};
-        fscanf(pf, "%s", buf);
-        leaf_node_files.push_back(string(buf));
+    for (int i = 0; i<tree_param_.tree_num_; i++) {
+        {
+            char buf[1024] = {NULL};
+            fscanf(pf, "%s", buf);
+            treeFiles.push_back(string(buf));
+        }
+        {
+            char buf[1024] = {NULL};
+            fscanf(pf, "%s", buf);
+            leaf_node_files.push_back(string(buf));
+        }
     }
     fclose(pf);
     
@@ -161,24 +178,26 @@ bool BTRNDRegressor::load(const char *fileName)
     for (int i = 0; i<treeFiles.size(); i++) {
         BTRNDTreeNode * root = NULL;
         int leaf_node_num = 0;
-        bool isRead = false;
-        isRead = BTRNDTreeNode::readTree(treeFiles[i].c_str(), root, leaf_node_num);
-        assert(isRead);
+        
+        // read tree structure
+        is_read = BTRNDTreeNode::readTree(treeFiles[i].c_str(), root, leaf_node_num);
+        assert(is_read);
         assert(root);
         
         BTRNDTree *tree = new BTRNDTree();
+        assert(tree);
         tree->root_ = root;
-        tree->setTreeParameter(reg_tree_param_);
+        tree->setTreeParameter(tree_param_);
         tree->leaf_node_num_ = leaf_node_num;
         
         // read leaf node descriptor and set it in the tree
-        Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> data;
-        isRead = YaelIO::read_fvecs_file(leaf_node_files[i].c_str(), data);
-        assert(isRead);
-        tree->setLeafNodeDescriptor(data);
+        Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> leaf_node_feature;
+        is_read = YaelIO::read_fvecs_file(leaf_node_files[i].c_str(), leaf_node_feature);
+        assert(is_read);
+        tree->setLeafNodeDescriptor(leaf_node_feature);
         
         trees_.push_back(tree);
     }
-    printf("read from %s\n", fileName);
+    printf("read from: %s, tree nume: %lu\n", model_file_name, trees_.size());
     return true;
 }

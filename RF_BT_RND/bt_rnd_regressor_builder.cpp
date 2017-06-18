@@ -8,7 +8,7 @@
 
 #include <iostream>
 #include "bt_rnd_regressor_builder.h"
-#include "DTRandom.h"
+#include "dt_random.h"
 #include "BTDTRUtil.h"
 #include "cvx_io.hpp"
 
@@ -32,7 +32,7 @@ bool BTRNDRegressorBuilder::buildModel(Regressor & model,
                                        const int max_check,
                                        const char * model_file_name) const
 {
-    model.reg_tree_param_ = tree_param_;
+    model.tree_param_ = tree_param_;
     model.trees_.clear();   // @todo release memory
     model.label_dim_ = (int)labels.front().size();
     
@@ -65,7 +65,7 @@ bool BTRNDRegressorBuilder::buildModel(Regressor & model,
         std::sort(cv_errors.begin(), cv_errors.end());
         cout<<"cross validation median error: "<<cv_errors[cv_errors.size()/2]<<endl;
         if (model_file_name != NULL) {
-            model.save(model_file_name);
+            model.saveModel(model_file_name);
         }
     }
     printf("build model done %lu trees.\n", model.trees_.size());
@@ -77,15 +77,14 @@ bool BTRNDRegressorBuilder::buildModel(Regressor& model,
                                        const vector<string> & depth_img_files,
                                        const vector<string> & pose_files,
                                        const int max_check,
-                                       const bool release_memory,
                                        const char *model_file_name) const
 {
+    assert(model_file_name);
+    assert(model.trees_.size() == 0);
     assert(rgb_img_files.size() == depth_img_files.size());
     assert(rgb_img_files.size() == pose_files.size());
     
-    dataset_param_.printSelf();
-    tree_param_.printSelf();
-    
+    // training parameters
     const int total_frame_num = (int)rgb_img_files.size();
     const int sampled_frame_num = std::min((int)rgb_img_files.size(), tree_param_.max_frame_num_);
     const int tree_num = tree_param_.tree_num_;
@@ -93,27 +92,19 @@ bool BTRNDRegressorBuilder::buildModel(Regressor& model,
     const bool is_use_depth = tree_param_.is_use_depth_;
     const int wh_single_dim = tree_param_.wh_kernel_size_;
     
-    model.trees_.resize(tree_num);
-    for (int i = 0; i<model.trees_.size(); i++){
-        model.trees_[i] = NULL;
-    }
+    // set intial tree as NULL
+    model.trees_ = vector<BTRNDRegressor::TreePtr>(tree_num, NULL);
     
-    model.reg_tree_param_    = tree_param_;
+    dataset_param_.printSelf();
+    tree_param_.printSelf();
+    model.tree_param_    = tree_param_;
     model.dataset_param_ = dataset_param_;
     
-    // default depth parameter of the dataset
-    /*
-    const int pyramid_level = 3;
-    const double default_depth = 1.0;
-    const double min_depth = 0.5;
-    const double max_depth = 3.0;
-     */
-    
-    using FeatureType = SCRFRandomFeature;
+    using FeatureType = SCRFRandomSample;
     using TreeType = BTRNDTree;
     // prepare data for training
     for (int n = 0; n<tree_num; n++){
-        //randomly sample frames
+        // Step 1: randomly sample training images
         vector<string> sampled_rgb_files;
         vector<string> sampled_depth_files;
         vector<string> sampled_pose_files;
@@ -126,7 +117,7 @@ bool BTRNDRegressorBuilder::buildModel(Regressor& model,
         
         printf("training from %lu frames\n", sampled_rgb_files.size());
         
-        // sample from selected frames
+        // Step 2: randomly sample pixel locations as feature
         vector<cv::Mat> rgb_images;
         vector<FeatureType> features;
         vector<Eigen::VectorXf> labels;
@@ -143,7 +134,7 @@ bool BTRNDRegressorBuilder::buildModel(Regressor& model,
                                                   sample_per_frame, j, dataset_param_,
                                                   is_use_depth, false,
                                                   cur_features, cur_labels);
-            
+            // add WHT feature
             BTRNDUtil::extractWHFeatureFromRgbImages(rgb_img_file, cur_features, wh_single_dim, false);
             
             features.insert(features.end(), cur_features.begin(), cur_features.end());
@@ -168,6 +159,9 @@ bool BTRNDRegressorBuilder::buildModel(Regressor& model,
         printf("build a tree cost %lf minutes\n", (clock()- tt)/CLOCKS_PER_SEC/60.0);
         model.trees_[n] = tree;
         
+        if (n == 0) {
+            model.label_dim_ = (int)labels.front().size();
+        }        
         
         // single tree training error
         vector<float> training_errors;
@@ -188,18 +182,17 @@ bool BTRNDRegressorBuilder::buildModel(Regressor& model,
         
         
         if(model_file_name != NULL) {
-            model.save(model_file_name);
+            model.saveModel(model_file_name);
             printf("saved %s\n", model_file_name);
         }
         
         // validation error from a single tree
         this->testValidataionError(*tree, rgb_img_files, depth_img_files, pose_files, 10, max_check, 0.1);
         
-        if(release_memory) {
-            delete tree;
-            tree = NULL;
-            model.trees_[n] = NULL;
-        }
+        // delete current tree, save memory
+        delete tree;
+        tree = NULL;
+        model.trees_[n] = NULL;
     }
     
     return true;
@@ -213,7 +206,7 @@ bool BTRNDRegressorBuilder::testValidataionError(const BTRNDTree & tree,
                                                  const int max_check,
                                                  const double error_threshold) const
 {
-    using FeatureType = SCRFRandomFeature;
+    using FeatureType = SCRFRandomSample;
     using TreeType = BTRNDTree;
     
     const int sample_per_frame = tree_param_.sampler_num_per_frame_;

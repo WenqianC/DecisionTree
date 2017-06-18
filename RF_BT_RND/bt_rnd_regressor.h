@@ -15,27 +15,31 @@
 
 using std::vector;
 
+// a random forests
 class BTRNDRegressor
 {
-
     friend class BTRNDRegressorBuilder;
     
     typedef BTRNDTree *  TreePtr;
-    typedef SCRFRandomFeature Feature;
+    typedef SCRFRandomSample FeatureType;
     
     vector<TreePtr> trees_;
-    BTRNDTreeParameter reg_tree_param_;
-    DatasetParameter dataset_param_;
-    
-    
-    int label_dim_;
-    
+    BTRNDTreeParameter tree_param_;
+    DatasetParameter dataset_param_;    
+   
+    int label_dim_;   // label dimesion, for 3D location, it is 3
 public:
-    BTRNDRegressor(){label_dim_ = 0;}
-    ~BTRNDRegressor(){}  // @todo release node
+    BTRNDRegressor();
+    ~BTRNDRegressor();
     
-    // return every prediction and distance from every tree
-    bool predict(const Feature & feature,
+    // feature: testing sample
+    // rgb_image: testing image
+    // max_check: back tracking parameter
+    // predictions: predictions from each tree, output
+    //              ordered by distance
+    // dists: local patch descriptor distance, output    
+    // return: true if every tree gives a prediction
+    bool predict(const FeatureType & feature,
                  const cv::Mat & rgb_image,
                  const int max_check,
                  vector<Eigen::VectorXf> & predictions,
@@ -46,8 +50,11 @@ public:
     const BTRNDTree * getTree(int index) const;
     
     
-    bool save(const char *fileName) const;
-    bool load(const char *fileName);
+    // save model to a .txt file
+    bool saveModel(const char *file_name) const;
+    
+    // load trained model
+    bool loadModel(const char *file_name);
     
     
 };

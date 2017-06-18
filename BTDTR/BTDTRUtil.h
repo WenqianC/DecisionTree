@@ -132,30 +132,16 @@ public:
     }
 };
 
-class BTDTRSplitParameter
-{
-public:
-    int split_dim_;
-    float split_threshold_;
-    float split_loss_;        // spatial variance
-    
-    BTDTRSplitParameter()
-    {
-        split_dim_ = 0;
-        split_threshold_ = 0.0;
-        split_loss_ = 1.0;
-    }
-};
 
 
 class BTDTRUtil
 {
 public:
     template <class T>
-    static double spatial_variance(const vector<T> & labels, const vector<unsigned int> & indices);
+    static double spatialVariance(const vector<T> & labels, const vector<unsigned int> & indices);
     
     template <class T>
-    static void mean_stddev(const vector<T> & labels, const vector<unsigned int> & indices, T & mean, T & sigma);
+    static void meanStddev(const vector<T> & labels, const vector<unsigned int> & indices, T & mean, T & sigma);
     
     template <class T>
     static void mean_stddev(const vector<T>& labels, T & mean, T & sigma);

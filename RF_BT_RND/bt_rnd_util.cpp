@@ -22,11 +22,11 @@ BTRNDUtil::randomSampleFromRgbdImages(const char * rgb_img_file,
                                      const DatasetParameter & dataset_param,
                                      const bool use_depth,
                                      const bool verbose,
-                                     vector<SCRFRandomFeature> & features,
+                                     vector<SCRFRandomSample> & features,
                                      vector<Eigen::VectorXf> & labels)
 {
     
-    BTRNDUtil::randomSampleFromRgbdImages(rgb_img_file, depth_img_file, camera_pose_file,
+    BTRNDUtil::randomSampleFromRgbdImagesImpl(rgb_img_file, depth_img_file, camera_pose_file,
                                           num_sample, image_index, dataset_param.depth_factor_,
                                           dataset_param.camera_matrix(), dataset_param.min_depth_,
                                           dataset_param.max_depth_, use_depth, verbose, features, labels);
@@ -34,7 +34,7 @@ BTRNDUtil::randomSampleFromRgbdImages(const char * rgb_img_file,
 
 
 void
-BTRNDUtil::randomSampleFromRgbdImages(const char * rgb_img_file,
+BTRNDUtil::randomSampleFromRgbdImagesImpl(const char * rgb_img_file,
                                       const char * depth_img_file,
                                       const char * camera_pose_file,
                                       const int num_sample,
@@ -45,7 +45,7 @@ BTRNDUtil::randomSampleFromRgbdImages(const char * rgb_img_file,
                                       const double max_depth,
                                       const bool use_depth,
                                       const bool verbose,
-                                      vector<SCRFRandomFeature> & features,
+                                      vector<SCRFRandomSample> & features,
                                       vector<Eigen::VectorXf> & labels)
 {
     assert(rgb_img_file);
@@ -84,7 +84,7 @@ BTRNDUtil::randomSampleFromRgbdImages(const char * rgb_img_file,
         if (use_depth) {
             depth = camera_depth_img.at<double>(y, x)/depth_factor;
         }
-        SCRFRandomFeature sp;
+        SCRFRandomSample sp;
         sp.p2d_ = Eigen::Vector2f(x, y);
         sp.inv_depth_ = 1.0/depth;
         sp.image_index_ = image_index;
@@ -107,7 +107,7 @@ BTRNDUtil::randomSampleFromRgbdImages(const char * rgb_img_file,
 
 void
 BTRNDUtil::extractWHFeatureFromRgbImages(const char * rgb_img_file,
-                                        vector<SCRFRandomFeature> & features,
+                                        vector<SCRFRandomSample> & features,
                                         const int single_channel_dim,
                                         const bool verbose)
 {
@@ -133,7 +133,7 @@ BTRNDUtil::extractWHFeatureFromRgbImages(const char * rgb_img_file,
 
 void
 BTRNDUtil::extractDepthAdaptiveWHFeatureFromRgbImages(const char * rgb_img_file,
-                                                     vector<SCRFRandomFeature> & samples,
+                                                     vector<SCRFRandomSample> & samples,
                                                      const int single_channel_dim,
                                                      const int pyramid_level,
                                                      const double default_depth,
@@ -170,7 +170,7 @@ BTRNDUtil::extractDepthAdaptiveWHFeatureFromRgbImages(const char * rgb_img_file,
     assert(pyramid.size() == pyramid_level);
     
     // group samples to each pyramid
-    vector< vector<SCRFRandomFeature> > grouped_samples(pyramid_level);
+    vector< vector<SCRFRandomSample> > grouped_samples(pyramid_level);
     vector< vector< int> > original_index(pyramid_level);   // keep the index of origial input sample
     for (int i = 0; i<samples.size(); i++) {
         double depth = 1.0/samples[i].inv_depth_;

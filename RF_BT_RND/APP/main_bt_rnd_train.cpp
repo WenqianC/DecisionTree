@@ -17,7 +17,7 @@
 
 using std::string;
 
-#if 0
+#if 1
 
 static void help()
 {
@@ -71,7 +71,7 @@ int main(int argc, const char * argv[])
     builder.setTreeParameter(tree_param);
     builder.buildModel(model, rgb_files, depth_files, pose_files, max_check, true, save_model_file);   
     
-    model.save(save_model_file);
+    model.saveModel(save_model_file);
     printf("save model to %s\n", save_model_file);
     dataset_param.printSelf();
     tree_param.printSelf();
