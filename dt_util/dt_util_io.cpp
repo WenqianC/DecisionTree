@@ -6,7 +6,7 @@
 //  Copyright (c) 2016 Nowhere Planet. All rights reserved.
 //
 
-#include "DTUtil_IO.h"
+#include "dt_util_io.hpp"
 
 /********         DTUtil_IO           ************/
 bool DTUtil_IO::read_matrix(const char * file_name, vector<VectorXd> & data)

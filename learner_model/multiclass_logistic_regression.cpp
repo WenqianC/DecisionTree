@@ -6,7 +6,7 @@
 //  Copyright (c) 2017 Nowhere Planet. All rights reserved.
 //
 
-#include "multiclass_logistic_regression.h"
+#include "multiclass_logistic_regression.hpp"
 #include <iostream>
 
 using Eigen::VectorXf;
@@ -133,7 +133,7 @@ namespace dt {
     }
     
     bool MultiClassLogisticRegression::predict(const vector<Eigen::VectorXf> & features,
-                                               vector<unsigned int> & predictions)
+                                               vector<unsigned int> & predictions) const
     {
         
         assert(features.size() > 0);
@@ -150,5 +150,36 @@ namespace dt {
         assert(features.size() == predictions.size());
         return true;
     }
+    
+    unsigned int MultiClassLogisticRegression::predict(const Eigen::VectorXf & feature) const
+    {
+        Eigen::MatrixXf wt = weight_.transpose();
+        assert(wt.cols() == feature.size());
+        
+        int pred = 0;
+        Eigen::VectorXf probability = softmax(wt, bias_, feature);
+        probability.maxCoeff(&pred);
+        assert(pred >= 0);
+        return (unsigned int)pred;
+    }
+    
+    // after fit the model
+    void MultiClassLogisticRegression::getParameter(Eigen::MatrixXf & weight, Eigen::VectorXf & bias) const
+    {
+        assert(bias_.size() > 0);
+        assert(bias_.size() == weight_.cols());
+        
+        weight = weight_;
+        bias = bias_;
+    }
+    
+    void MultiClassLogisticRegression::setParameter(const Eigen::MatrixXf & weight,
+                                                    const Eigen::VectorXf & bias)
+    {
+        weight_ = weight;
+        bias_ = bias;        
+    }
+    
+    
     
 } // name spacd dt

@@ -6,8 +6,8 @@
 //  Copyright (c) 2017 Nowhere Planet. All rights reserved.
 //
 
-#include "bt_rnd_tree.h"
-#include "bt_rnd_tree_node.h"
+#include "btrf_tree.h"
+#include "btrf_tree_node.h"
 #include "dt_random.h"
 #include "cvx_util.hpp"
 #include "BTDTRUtil.h"

@@ -7,7 +7,7 @@
 //
 
 #include <iostream>
-#include "bt_rnd_regressor_builder.h"
+#include "btrf_forest_builder.h"
 #include "dt_random.h"
 #include "BTDTRUtil.h"
 #include "cvx_io.hpp"
@@ -15,17 +15,17 @@
 using std::cout;
 using std::endl;
 
-void BTRNDRegressorBuilder::setTreeParameter(const BTRNDTreeParameter & param)
+void BTRFForestBuilder::setTreeParameter(const BTRNDTreeParameter & param)
 {
     tree_param_ = param;
 }
 
-void BTRNDRegressorBuilder::setDatasetParameter(const DatasetParameter & param)
+void BTRFForestBuilder::setDatasetParameter(const DatasetParameter & param)
 {
     dataset_param_ = param;
 }
 
-bool BTRNDRegressorBuilder::buildModel(Regressor & model,
+bool BTRFForestBuilder::buildModel(BTRFForest & model,
                                        const vector<Feature> & features,
                                        const vector<VectorXf> & labels,
                                        const vector<cv::Mat> & rgb_images,
@@ -38,11 +38,12 @@ bool BTRNDRegressorBuilder::buildModel(Regressor & model,
     
     const int tree_num = tree_param_.tree_num_;
     for (int n = 0; n<tree_num; n++) {
-        // bagging
+        // bagging, use about 2/3 as training set, the test as validation set
         vector<unsigned int> training_indices;
         vector<unsigned int> validation_indices;
         DTRandom::outof_bag_sampling((unsigned int) features.size(), training_indices, validation_indices);
         
+        // Step 1: train a decision tree
         TreeType * tree = new TreeType();
         assert(tree);
         double tt = clock();
@@ -62,8 +63,8 @@ bool BTRNDRegressorBuilder::buildModel(Regressor & model,
             cv_errors.push_back((pred - labels[index]).norm());
         }        
         
-        std::sort(cv_errors.begin(), cv_errors.end());
-        cout<<"cross validation median error: "<<cv_errors[cv_errors.size()/2]<<endl;
+        std::sort(cv_errors.begin(), cv_errors.end());        
+        cout<<"out of bag validation median error: "<<cv_errors[cv_errors.size()/2]<<endl;
         if (model_file_name != NULL) {
             model.saveModel(model_file_name);
         }
@@ -72,7 +73,7 @@ bool BTRNDRegressorBuilder::buildModel(Regressor & model,
     return true;
 }
 
-bool BTRNDRegressorBuilder::buildModel(Regressor& model,
+bool BTRFForestBuilder::buildModel(BTRFForest& model,
                                        const vector<string> & rgb_img_files,
                                        const vector<string> & depth_img_files,
                                        const vector<string> & pose_files,
@@ -93,7 +94,7 @@ bool BTRNDRegressorBuilder::buildModel(Regressor& model,
     const int wh_single_dim = tree_param_.wh_kernel_size_;
     
     // set intial tree as NULL
-    model.trees_ = vector<BTRNDRegressor::TreePtr>(tree_num, NULL);
+    model.trees_ = vector<BTRFForest::TreePtr>(tree_num, NULL);
     
     dataset_param_.printSelf();
     tree_param_.printSelf();
@@ -143,7 +144,7 @@ bool BTRNDRegressorBuilder::buildModel(Regressor& model,
         }
         assert(features.size() == labels.size());
         
-        printf("training sample number is %lu\n", features.size());
+        printf("training sample number is %lu.\n", features.size());
         
         vector<unsigned int> training_data_indices;
         for(int j = 0; j<features.size(); j++){
@@ -180,14 +181,14 @@ bool BTRNDRegressorBuilder::buildModel(Regressor& model,
         double median_train_error = training_errors[training_errors.size()/2];
         printf("tree %d\n. median training error is %lf meter\n", n, median_train_error);
         
-        
+        // save model
         if(model_file_name != NULL) {
             model.saveModel(model_file_name);
             printf("saved %s\n", model_file_name);
         }
         
         // validation error from a single tree
-        this->testValidataionError(*tree, rgb_img_files, depth_img_files, pose_files, 10, max_check, 0.1);
+        this->EstimateValidataionError(*tree, rgb_img_files, depth_img_files, pose_files, 10, max_check, 0.1);
         
         // delete current tree, save memory
         delete tree;
@@ -198,13 +199,13 @@ bool BTRNDRegressorBuilder::buildModel(Regressor& model,
     return true;
 }
 
-bool BTRNDRegressorBuilder::testValidataionError(const BTRNDTree & tree,
-                                                 const vector<string> & rgb_img_files,
-                                                 const vector<string> & depth_img_files,
-                                                 const vector<string> & pose_files,
-                                                 const int sample_frame_num,
-                                                 const int max_check,
-                                                 const double error_threshold) const
+bool BTRFForestBuilder::EstimateValidataionError(const BTRNDTree & tree,
+                                                     const vector<string> & rgb_img_files,
+                                                     const vector<string> & depth_img_files,
+                                                     const vector<string> & pose_files,
+                                                     const int sample_frame_num,
+                                                     const int max_check,
+                                                     const double error_threshold) const
 {
     using FeatureType = SCRFRandomSample;
     using TreeType = BTRNDTree;
@@ -261,7 +262,7 @@ bool BTRNDRegressorBuilder::testValidataionError(const BTRNDTree & tree,
                 }
             }
             
-            // median cross validation error
+            // median validation error, 3D location
             std::sort(cv_errors.begin(), cv_errors.end());
             double median_error = cv_errors[cv_errors.size()/2];
             median_errors.push_back(median_error);
@@ -279,7 +280,7 @@ bool BTRNDRegressorBuilder::testValidataionError(const BTRNDTree & tree,
         assert(backtracking.size() == percentages.size());
         //output result
         for (int b = 0; b<backtracking.size(); b++) {
-            printf("max check %d, median CV error: %lf meter\n", backtracking[b], median_errors[b]);
+            printf("max check %d, median validation error: %lf meter\n", backtracking[b], median_errors[b]);
         }
         printf("\n");
         
@@ -287,8 +288,7 @@ bool BTRNDRegressorBuilder::testValidataionError(const BTRNDTree & tree,
             printf("max check %d, inlier percentage %lf within threshold %lf \n", backtracking[b], percentages[b], error_threshold);
         }
         printf("\n\n");
-    }
-    
+    }    
     
     return true;
 }

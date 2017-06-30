@@ -6,12 +6,31 @@
 //  Copyright (c) 2017 Nowhere Planet. All rights reserved.
 //
 
-#include "dt_util.h"
+#include "dt_util.hpp"
 #include <Eigen/QR>
 #include <iostream>
 
 using std::cout;
 using std::endl;
+
+vector<unsigned int> DTUtil::randomDimensions(const int dimension, const int candidate_dimension)
+{
+    assert(dimension > 0);
+    assert(candidate_dimension > 0);
+    assert(candidate_dimension <= dimension);
+    
+    vector<unsigned int> dims;
+    for (unsigned int i = 0; i<dimension; i++) {
+        dims.push_back(i);
+    }
+    std::random_shuffle(dims.begin(), dims.end());
+    vector<unsigned int> random_dim(dims.begin(), dims.begin() + candidate_dimension);
+    assert(random_dim.size() > 0 && random_dim.size() <= dims.size());
+    
+    return random_dim;
+}
+
+
 
 template <class T>
 double DTUtil::spatialVariance(const vector<T> & labels, const vector<unsigned int> & indices)
@@ -307,6 +326,31 @@ DTUtil::isSameLabel(const vector<unsigned int> & labels, const vector<unsigned i
         }
     }
     return true;
+}
+
+int DTUtil::minLabelNumber(const vector<unsigned int> & labels, const vector<unsigned int> & indices,
+                           const int num_category)
+{
+    vector<int> num(num_category, 0);
+    for (int i = 0; i<indices.size(); i++) {
+        int label = labels[indices[i]];
+        num[label]++;
+    }
+    return *std::min_element(num.begin(), num.end());
+}
+
+int DTUtil::minLabelNumber(const vector<VectorXi> & labels,
+                           const vector<unsigned int> & indices,
+                           const int time_step,
+                           const int num_category)
+{
+    vector<int> num(num_category, 0);
+    for (int i = 0; i<indices.size(); i++) {
+        int label = labels[indices[i]][time_step];
+        num[label]++;
+    }
+    
+    return *std::min_element(num.begin(), num.end());
 }
 
 Eigen::MatrixXd

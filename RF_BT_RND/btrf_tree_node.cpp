@@ -6,7 +6,7 @@
 //  Copyright (c) 2017 Nowhere Planet. All rights reserved.
 //
 
-#include "bt_rnd_tree_node.h"
+#include "btrf_tree_node.h"
 
 BTRNDTreeNode::BTRNDTreeNode(int depth)
 {
@@ -171,4 +171,5 @@ void BTRNDTreeNode::readNode(FILE *pf, NodePtr & node, const int label_dim)
     BTRNDTreeNode::readNode(pf, node->left_child_, label_dim);
     BTRNDTreeNode::readNode(pf, node->right_child_, label_dim);
 }
+
 

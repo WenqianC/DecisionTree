@@ -10,7 +10,7 @@
 #include "DTRegressor.h"
 #include "DTRegressorBuilder.h"
 #include "DTCUtil.h"
-#include "DTUtil_IO.h"
+#include "dt_util_io.hpp"
 
 using namespace std;
 

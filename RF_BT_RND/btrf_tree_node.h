@@ -9,11 +9,12 @@
 #include <stdio.h>
 #include <vector>
 #include <Eigen/Dense>
-#include "bt_rnd_util.h"
+#include "btrf_util.h"
 
 
 using std::vector;
 using Eigen::VectorXf;
+
 
 class BTRNDTreeNode
 {

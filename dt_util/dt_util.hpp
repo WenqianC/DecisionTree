@@ -20,12 +20,16 @@ using std::vector;
 using std::string;
 using Eigen::VectorXf;
 using Eigen::VectorXd;
+using Eigen::VectorXi;
 
 using std::vector;
 
 class DTUtil
 {
 public:
+    // randomly generate a subset of dimensions
+    static vector<unsigned int> randomDimensions(const int dimension, const int ccandidate_dimension);
+    
     template <class T>
     static double spatialVariance(const vector<T> & labels, const vector<unsigned int> & indices);
     
@@ -51,7 +55,8 @@ public:
     
     // mean and standard of particular row
     template <class matrixType, class vectorType>
-    static void rowMeanStddev(const vector<matrixType> & labels, const vector<unsigned int> & indices, const int row_index, vectorType & mean,      vectorType & sigma);
+    static void rowMeanStddev(const vector<matrixType> & labels, const vector<unsigned int> & indices,
+                              const int row_index, vectorType & mean,   vectorType & sigma);
     
     template <class T>
     static void meanMedianError(const vector<T> & errors, T & mean, T & median);
@@ -60,12 +65,23 @@ public:
     template <class MatrixType>
     static void matrixMeanError(const vector<MatrixType> & errors, MatrixType & mean);
     
-   // template <class T_Vector, class Type2>
+   
     static double crossEntropy(const VectorXd & prob);
     
     static double balanceLoss(const int leftNodeSize, const int rightNodeSize);
     
     static bool isSameLabel(const vector<unsigned int> & labels, const vector<unsigned int> & indices);
+    
+    // minimum number of examples in all category
+    static int minLabelNumber(const vector<unsigned int> & labels,
+                              const vector<unsigned int> & indices,
+                              const int num_category);
+    
+    // label is a sequential data
+    static int minLabelNumber(const vector<VectorXi> & labels,
+                              const vector<unsigned int> & indices,
+                              const int time_step,
+                              const int num_category);
     
     
     static Eigen::MatrixXd confusionMatrix(const vector<unsigned int> & predictions,

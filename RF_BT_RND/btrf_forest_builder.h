@@ -6,12 +6,12 @@
 #define __bt_rnd_regressor_builder__
 
 #include <stdio.h>
-#include "bt_rnd_regressor.h"
-#include "bt_rnd_util.h"
+#include "btrf_forest.h"
+#include "btrf_util.h"
 
-class BTRNDRegressorBuilder
+class BTRFForestBuilder
 {
-    typedef BTRNDRegressor Regressor;
+    typedef BTRFForest Forest;
     typedef SCRFRandomSample Feature;
 private:
     BTRNDTreeParameter tree_param_;
@@ -35,7 +35,7 @@ public:
     //            not influence the model
     // model_file_name: optional,
     
-    bool buildModel(Regressor & model,
+    bool buildModel(Forest & model,
                     const vector<Feature> & features,
                     const vector<VectorXf> & labels,
                     const vector<cv::Mat> & rgb_images,
@@ -51,25 +51,23 @@ public:
     // https://www.microsoft.com/en-us/research/project/rgb-d-dataset-7-scenes/#
     // 4x4 camera to world coordinate transformation matrix
     // save_memory: save memory in training, set it as true when the tree is very large
-    // model_file_name: file model
-    bool buildModel(Regressor& model,
+    // model_file_name: model file name, .txt file
+    bool buildModel(Forest& model,
                     const vector<string> & rgb_img_files,
                     const vector<string> & depth_img_files,
                     const vector<string> & pose_files,
                     const int max_check,
                     const char *model_file_name) const;
     
-    
-    
-    
 private:
-    bool testValidataionError(const BTRNDTree & tree,
-                              const vector<string> & rgb_img_files,
-                              const vector<string> & depth_img_files,
-                              const vector<string> & pose_files,
-                              const int sample_frame_num,
-                              const int max_check,
-                              const double error_threshold) const;
+    // out of bag validation
+    bool EstimateValidataionError(const BTRNDTree & tree,
+                                  const vector<string> & rgb_img_files,
+                                  const vector<string> & depth_img_files,
+                                  const vector<string> & pose_files,
+                                  const int sample_frame_num,
+                                  const int max_check,
+                                  const double error_threshold) const;
     
 };
 

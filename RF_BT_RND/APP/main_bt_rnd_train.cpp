@@ -12,8 +12,8 @@
 #include <string>
 #include "cvx_io.hpp"
 #include "ms7ScenesUtil.hpp"
-#include "bt_rnd_regressor_builder.h"
-#include "bt_rnd_regressor.h"
+#include "btrf_forest_builder.h"
+#include "btrf_forest.h"
 
 using std::string;
 
@@ -65,11 +65,11 @@ int main(int argc, const char * argv[])
     }
     
     
-    BTRNDRegressorBuilder builder;
-    BTRNDRegressor model;
+    BTRFForestBuilder builder;
+    BTRFForest model;
     builder.setDatasetParameter(dataset_param);
     builder.setTreeParameter(tree_param);
-    builder.buildModel(model, rgb_files, depth_files, pose_files, max_check, true, save_model_file);   
+    builder.buildModel(model, rgb_files, depth_files, pose_files, max_check, save_model_file);
     
     model.saveModel(save_model_file);
     printf("save model to %s\n", save_model_file);

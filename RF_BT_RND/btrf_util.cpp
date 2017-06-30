@@ -6,7 +6,7 @@
 //  Copyright (c) 2017 Nowhere Planet. All rights reserved.
 //
 
-#include "bt_rnd_util.h"
+#include "btrf_util.h"
 #include "cvx_io.hpp"
 #include "ms7ScenesUtil.hpp"
 #include "cvxWalshHadamard.h"

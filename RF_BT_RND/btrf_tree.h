@@ -1,7 +1,3 @@
-//
-//  bt_rnd_tree.h
-//  RGBD_RF
-//
 //  Created by jimmy on 2017-01-18.
 //  Copyright (c) 2017 Nowhere Planet. All rights reserved.
 //
@@ -20,7 +16,7 @@
 // Eigen
 #include <Eigen/Dense>
 
-#include "bt_rnd_util.h"
+#include "btrf_util.h"
 #include "dt_random.h"
 
 
@@ -33,7 +29,7 @@ class BTRNDTreeNode;
 class BTRNDTree
 {
 private:
-    friend class BTRNDRegressor;
+    friend class BTRFForest;
     
     typedef flann::L2<float> Distance;
     typedef Distance::ResultType DistanceType;

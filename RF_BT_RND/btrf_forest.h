@@ -11,14 +11,14 @@
 
 #include <stdio.h>
 #include <vector>
-#include "bt_rnd_tree.h"
+#include "btrf_tree.h"
 
 using std::vector;
 
 // a random forests
-class BTRNDRegressor
+class BTRFForest
 {
-    friend class BTRNDRegressorBuilder;
+    friend class BTRFForestBuilder;
     
     typedef BTRNDTree *  TreePtr;
     typedef SCRFRandomSample FeatureType;
@@ -29,8 +29,8 @@ class BTRNDRegressor
    
     int label_dim_;   // label dimesion, for 3D location, it is 3
 public:
-    BTRNDRegressor();
-    ~BTRNDRegressor();
+    BTRFForest();
+    ~BTRFForest();
     
     // feature: testing sample
     // rgb_image: testing image

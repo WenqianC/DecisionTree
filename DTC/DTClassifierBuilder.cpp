@@ -7,7 +7,7 @@
 //
 
 #include "DTClassifierBuilder.h"
-#include "dt_random.h"
+#include "dt_random.hpp"
 #include <iostream>
 
 using std::cout;

@@ -12,8 +12,8 @@
 #include "cvx_io.hpp"
 #include <unordered_map>
 #include "ms7ScenesUtil.hpp"
-#include "bt_rnd_regressor_builder.h"
-#include "bt_rnd_regressor.h"
+#include "btrf_forest_builder.h"
+#include "btrf_forest.h"
 
 using std::string;
 

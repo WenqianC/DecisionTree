@@ -6,24 +6,24 @@
 //  Copyright (c) 2017 Nowhere Planet. All rights reserved.
 //
 
-#include "bt_rnd_regressor.h"
-#include "bt_rnd_tree.h"
+#include "btrf_forest.h"
+#include "btrf_tree.h"
 #include "yael_io.h"
-#include "bt_rnd_tree_node.h"
+#include "btrf_tree_node.h"
 #include "cvx_util.hpp"
 
 
-BTRNDRegressor::BTRNDRegressor()
+BTRFForest::BTRFForest()
 {
     label_dim_ = 3;
 }
 
-BTRNDRegressor::~BTRNDRegressor()
+BTRFForest::~BTRFForest()
 {
     // @todo release memory in each tree
 }
 
-bool BTRNDRegressor::predict(const FeatureType & feature,
+bool BTRFForest::predict(const FeatureType & feature,
                              const cv::Mat & rgb_image,
                              const int max_check,
                              vector<Eigen::VectorXf> & predictions,
@@ -58,22 +58,22 @@ bool BTRNDRegressor::predict(const FeatureType & feature,
     return predictions.size() == trees_.size();
 }
 
-const BTRNDTreeParameter & BTRNDRegressor::getTreeParameter(void) const
+const BTRNDTreeParameter & BTRFForest::getTreeParameter(void) const
 {
     return tree_param_;
 }
 
-const DatasetParameter & BTRNDRegressor::getDatasetParameter(void) const
+const DatasetParameter & BTRFForest::getDatasetParameter(void) const
 {
     return dataset_param_;
 }
-const BTRNDTree * BTRNDRegressor::getTree(int index) const
+const BTRNDTree * BTRFForest::getTree(int index) const
 {
     assert(index >=0 && index < trees_.size());
     return trees_[index];
 }
 
-bool BTRNDRegressor::saveModel(const char *file_name) const
+bool BTRFForest::saveModel(const char *file_name) const
 {
     assert(trees_.size() > 0);
     assert(strlen(file_name) < 1000);
@@ -129,7 +129,7 @@ bool BTRNDRegressor::saveModel(const char *file_name) const
     return true;
 }
 
-bool BTRNDRegressor::loadModel(const char *model_file_name)
+bool BTRFForest::loadModel(const char *model_file_name)
 {
     FILE *pf = fopen(model_file_name, "r");
     if (!pf) {

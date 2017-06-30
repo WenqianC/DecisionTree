@@ -32,7 +32,15 @@ namespace dt {
                  const int max_iters = 500);
         
         bool predict(const vector<Eigen::VectorXf> & features,
-                     vector<unsigned int> & predictions);
+                     vector<unsigned int> & predictions) const;
+        
+        unsigned int predict(const Eigen::VectorXf & feature) const;
+        
+        // after fit the model
+        void getParameter(Eigen::MatrixXf & weight, Eigen::VectorXf & bias) const;
+        
+        void setParameter(const Eigen::MatrixXf & weight,
+                          const Eigen::VectorXf & bias);
         
         
     private:
