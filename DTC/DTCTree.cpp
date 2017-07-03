@@ -140,7 +140,7 @@ bool DTCTree::configureNode(const vector<VectorXd> & features,
         node->prob_ = prob;
         if (tree_param_.verbose_) {
             printf("leaf node depth size %d    %lu\n", node->depth_, indices.size());
-            cout<<"probability: \n"<<node->prob_<<endl<<endl;;
+            cout<<"probability: \n"<<node->prob_.transpose()<<endl<<endl;;
         }
         node->sample_num_ = (int)indices.size();
         return true;
@@ -218,7 +218,7 @@ bool DTCTree::configureNode(const vector<VectorXd> & features,
         node->prob_ = prob;
         if (tree_param_.verbose_) {
             printf("leaf node depth size %d    %lu\n", node->depth_, indices.size());
-            cout<<"probability: \n"<<node->prob_<<endl<<endl;;
+            cout<<"probability: \n"<<node->prob_.transpose()<<endl<<endl;;
         }
         node->sample_num_ = (int)indices.size();
     }    

@@ -25,6 +25,8 @@ public:
     bool buildModel(DTClassifer & model,
                     const vector<VectorXd> & features,
                     const vector<unsigned int> & labels,
+                    const vector<VectorXd> & valid_features,
+                    const vector<unsigned int>& valid_labels,
                     const char * model_file_name = NULL) const;
     
     //features: a group of features, each group is from a single image

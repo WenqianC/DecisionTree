@@ -73,7 +73,6 @@ namespace dt {
         vector<unsigned int> predictions(n_data);
         Eigen::MatrixXf dw = Eigen::MatrixXf::Zero(n_dim, n_category);
         Eigen::VectorXf d_bias = Eigen::VectorXf::Zero(n_category);
-        //const Eigen::VectorXf one = Eigen::VectorXf::Ones(n_category);
        
         double best_loss = std::numeric_limits<double>::max();
         Eigen::MatrixXf best_w = Eigen::MatrixXf::Zero(n_dim, n_category);
@@ -119,7 +118,10 @@ namespace dt {
             Eigen::VectorXf cur_bias = bias_  - learning_rate_ * d_bias;
             
             // step 3, early stop  ?
-            //printf("iteration %d, accuracy %lf\n", iter, acc);
+            if (iter %50 == 0) {
+                printf("iteration %d, cross entropy loss %lf\n", iter, loss);
+            }
+            
             
             // step 3
             weight_ = cur_w;

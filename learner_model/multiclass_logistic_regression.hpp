@@ -21,7 +21,7 @@ namespace dt {
         MultiClassLogisticRegression()
         {
             learning_rate_ = 0.0001;
-            lambda_ = 0.001;
+            lambda_ = 0.0001;
         }
         ~MultiClassLogisticRegression();
         

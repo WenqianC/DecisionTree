@@ -9,6 +9,7 @@
 #include "DTClassifierBuilder.h"
 #include "dt_random.hpp"
 #include <iostream>
+#include "dt_util.hpp"
 
 using std::cout;
 using std::endl;
@@ -21,20 +22,23 @@ void DTClassifierBuilder::setTreeParameter(const DTCTreeParameter & param)
 bool DTClassifierBuilder::buildModel(DTClassifer & model,
                                      const vector<VectorXd> & features,
                                      const vector<unsigned int> & labels,
+                                     const vector<VectorXd> & valid_features,
+                                     const vector<unsigned int>& valid_labels,
                                      const char * model_file_name) const
 {
     assert(features.size() == labels.size());
+    assert(valid_features.size() == valid_labels.size());
     
     model.tree_param_ = tree_param_;
     model.trees_.clear();
     
     const int tree_num = tree_param_.tree_num_;
+    const int category_num = tree_param_.category_num_;
     for (int n = 0; n<tree_num; n++) {
         // bagging
         vector<unsigned int> training_indices;
         vector<unsigned int> validation_indices;
         DTRandom::outof_bag_sampling((unsigned int) features.size(), training_indices, validation_indices);
-        
         
         DTCTree * tree = new DTCTree();
         assert(tree);
@@ -46,21 +50,37 @@ bool DTClassifierBuilder::buildModel(DTClassifer & model,
         
         // test on the validation data
         
-        vector<Eigen::VectorXd> cv_probs;
+        vector<unsigned int> cv_predictions;
         vector<unsigned int> cv_labels;
         for (int i = 0; i<validation_indices.size(); i++) {
             const int index = validation_indices[i];
-            Eigen::VectorXd prob;
-            model.predict(features[index], prob);
-            cv_probs.push_back(prob);
-            cv_labels.push_back(labels[index]);
+            unsigned int pred;
+            model.predict(features[index], pred);
+            cv_predictions.push_back(pred);
+            cv_labels.push_back(labels[index]);            
         }
         
-        Eigen::MatrixXd cv_conf = DTCUtil::confusionMatrix(cv_probs, cv_labels);
-        cout<<"out of bag cross validation confusion matrix: \n"<<cv_conf<<endl;
+        Eigen::MatrixXd oob_conf = DTUtil::confusionMatrix(cv_predictions, cv_labels, category_num, false);
+        cout<<"out of bag cross validation confusion matrix: \n"<<oob_conf<<endl;
         if (model_file_name != NULL) {
             model.save(model_file_name);
         }
+        
+        if (valid_features.size() != 0) {
+            vector<unsigned int> valid_predictions;
+            for (int i = 0; i<valid_features.size(); i++) {
+                unsigned int pred = 0;
+                model.predict(valid_features[i], pred);
+                valid_predictions.push_back(pred);
+            }
+            assert(valid_predictions.size() == valid_labels.size());
+            Eigen::MatrixXd valid_conf = DTCUtil::confusionMatrix(valid_predictions, valid_labels, category_num, false);
+            Eigen::VectorXd accuracy = DTUtil::accuracyFromConfusionMatrix(valid_conf);
+            cout<<"Validation confusion matrix: \n"<<valid_conf<<endl;
+            cout<<"Validation accuracy: \n"<<accuracy.transpose()<<endl;
+        }
+        
+        
     }
     return true;
 }

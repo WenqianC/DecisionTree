@@ -299,6 +299,9 @@ DTUtil::crossEntropy(const VectorXd & prob)
     double entropy = 0.0;
     for (int i = 0; i<prob.size(); i++) {
         double p = prob[i];
+        if (p == 0.0) {
+            continue;
+        }
         assert(p > 0 && p <= 1);
         entropy += - p * std::log(p);
     }
