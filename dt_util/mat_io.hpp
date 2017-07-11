@@ -12,12 +12,26 @@
 // matlab input output
 #include <stdio.h>
 #include <Eigen/Dense>
+#include <string>
+#include <vector>
 
 
 namespace matio {
     
+    // suppport Eigen::MatrixXd, Eigen::MatrixXf and Eigen::MatrixXi
     template<class matrixT>
     bool readMatrix(const char *file_name, const char *var_name, matrixT & data);
+    
+    
+    // only support Eigen::MatrixXd
+    template<class matrixT>
+    bool writeMatrix(const char *file_name, const char *var_name, const matrixT& data);
+    
+    
+    template<class matrixT>
+    bool writeMultipleMatrix(const char *file_name,
+                             const std::vector<std::string>& var_name,
+                             const std::vector<matrixT>& data);
     
 } // name space matio
 
