@@ -120,8 +120,19 @@ namespace matio {
             printf("Error: creating MAT file %s \n", file_name);
             return false;
         }
+        
+        // temporal data holder
+        double* pdata = new double[rows * cols];
+        assert(pdata);
+        // colum wise copy data
+        for (int r = 0; r<rows; r++) {
+            for (int c = 0; c<cols; c++) {
+                pdata[c*rows + r] = data(r, c);
+            }
+        }
+        
         // only support double
-        matvar = Mat_VarCreate(var_name, MAT_C_DOUBLE, MAT_T_DOUBLE, 2, dims, (void*)data.data(), 0);
+        matvar = Mat_VarCreate(var_name, MAT_C_DOUBLE, MAT_T_DOUBLE, 2, dims, (void*)pdata, 0);
         if ( NULL == matvar ) {
             fprintf(stderr,"Error creating variable for %s.\n", var_name);
             is_write = false;
@@ -136,6 +147,7 @@ namespace matio {
                    var_name, file_name);
         }
         
+        delete [] pdata;
         return is_write;
     }
     
@@ -210,6 +222,9 @@ namespace matio {
     
     template
     bool writeMatrix(const char *file_name, const char *var_name, const Eigen::MatrixXd& data);
+    
+    template
+    bool writeMatrix(const char *file_name, const char *var_name, const Eigen::MatrixXf& data);
     
     template
     bool writeMultipleMatrix(const char *file_name,

@@ -10,6 +10,8 @@
 #include "dt_random.hpp"
 #include <iostream>
 #include "dt_util.hpp"
+#include "dt_proximity.hpp"
+#include "mat_io.hpp"
 
 using std::cout;
 using std::endl;
@@ -34,6 +36,11 @@ bool DTClassifierBuilder::buildModel(DTClassifer & model,
     
     const int tree_num = tree_param_.tree_num_;
     const int category_num = tree_param_.category_num_;
+    const bool is_proximity = tree_param_.proximity_;
+    
+    const int N = (int)features.size();
+    DTProximity data_proximity(N);
+    
     for (int n = 0; n<tree_num; n++) {
         // bagging
         vector<unsigned int> training_indices;
@@ -49,7 +56,6 @@ bool DTClassifierBuilder::buildModel(DTClassifer & model,
         printf("build tree %d cost %lf minutes\n", n, (clock()- tt)/CLOCKS_PER_SEC/60.0);
         
         // test on the validation data
-        
         vector<unsigned int> cv_predictions;
         vector<unsigned int> cv_labels;
         for (int i = 0; i<validation_indices.size(); i++) {
@@ -61,7 +67,7 @@ bool DTClassifierBuilder::buildModel(DTClassifer & model,
         }
         
         Eigen::MatrixXd oob_conf = DTUtil::confusionMatrix(cv_predictions, cv_labels, category_num, false);
-        cout<<"out of bag cross validation confusion matrix: \n"<<oob_conf<<endl;
+        cout<<"Out of bag validation confusion matrix: \n"<<oob_conf<<endl;
         if (model_file_name != NULL) {
             model.save(model_file_name);
         }
@@ -78,6 +84,17 @@ bool DTClassifierBuilder::buildModel(DTClassifer & model,
             Eigen::VectorXd accuracy = DTUtil::accuracyFromConfusionMatrix(valid_conf);
             cout<<"Validation confusion matrix: \n"<<valid_conf<<endl;
             cout<<"Validation accuracy: \n"<<accuracy.transpose()<<endl;
+        }
+        if (is_proximity) {
+            vector<unsigned int> indices = DTUtil::range<unsigned int>(0, (int)features.size(), 1);
+            tree->computeProximity(features, indices, data_proximity);
+            
+            
+            // void computeProximityMatrix(const int k);
+            data_proximity.computeProximityMatrix(5);            
+            const Eigen::MatrixXf prox_mat = data_proximity.getMatrix();
+            matio::writeMatrix((string("tree_") + std::to_string(n) + string("_prox.mat")).c_str(),
+                               "proximity", prox_mat);
         }
         
         

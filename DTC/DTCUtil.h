@@ -30,10 +30,12 @@ public:
     int min_split_num_;          // prevent too small node
     int split_candidate_num_;    // number of split in [v_min, v_max]
     
-    int feature_dimension_;          // feature dimension
-    int category_num_;               // category number
+    int feature_dimension_;      // feature dimension
+    int category_num_;           // category number
     
-    bool verbose_;
+    bool proximity_;             // if compute proximity matrix
+    bool verbose_leaf_;
+    bool verbose_;               // output training process
     
     DTCTreeParameter()
     {
@@ -42,10 +44,13 @@ public:
         min_leaf_node_num_ = 32;
         min_split_num_ = 16;
         split_candidate_num_ = 10;
-        verbose_ = false;
         
         feature_dimension_ = 10;
         category_num_ = 2;
+        
+        proximity_ = false;
+        verbose_ = false;
+        verbose_leaf_ = false;
     }
     
     DTCTreeParameter(const int feat_dim, const int category_num)
@@ -55,10 +60,12 @@ public:
         min_leaf_node_num_ = 32;
         min_split_num_ = 16;
         split_candidate_num_ = 10;
-        verbose_ = false;
         
         feature_dimension_ = feat_dim;
         category_num_ = category_num;
+        
+        proximity_ = false;
+        verbose_ = false;
     }
     
     bool readFromFile(const char *fileName)
@@ -78,6 +85,10 @@ public:
         int verbose = 0;
         parser.getIntValue("verbose", verbose);
         verbose_ = (verbose != 0);
+        int proximity = 0;
+        parser.getIntValue("proximity", proximity);
+        proximity_ = (proximity != 0);
+        
         return true;
     }
     
@@ -98,6 +109,10 @@ public:
         int verbose = 0;
         parser.getIntValue("verbose", verbose);
         verbose_ = (verbose != 0);
+        int proximity = 0;
+        parser.getIntValue("proximity", proximity);
+        proximity_ = (proximity != 0);
+        
         return true;
     }
     
@@ -113,6 +128,7 @@ public:
         parser.setIntValue("feature_dimension", feature_dimension_);
         parser.setIntValue("category_num", category_num_);
         parser.setIntValue("verbose", (int)verbose_);
+        parser.setIntValue("proximity", (int)proximity_);
         
         parser.writeToFile(pf);
         return true;
@@ -127,6 +143,7 @@ public:
         os<<"split_candidate_num: "<<p.split_candidate_num_<<endl;
         os<<"feature_dimension: "<<p.feature_dimension_<<endl;
         os<<"category_num: "<<p.category_num_<<endl;
+        os<<"proximity: "<<p.proximity_<<endl;
         return os;
     }
 };

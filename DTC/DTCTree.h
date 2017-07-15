@@ -13,6 +13,7 @@
 #include <vector>
 #include <Eigen/Dense>
 #include "DTCUtil.h"
+#include "dt_proximity.hpp"
 
 using std::vector;
 using Eigen::VectorXd;
@@ -47,6 +48,10 @@ public:
     const DTCTreeParameter & getTreeParameter(void) const;
     void setTreeParameter(const DTCTreeParameter & param);
     
+    // computer proximity matrix which measures the similarity between examples
+    void computeProximity(const vector<Eigen::VectorXd> & features,
+                          const vector<unsigned int> & indices,
+                          DTProximity & proximity) const;
     
 private:
     bool configureNode(const vector<VectorXd> & features,
@@ -56,7 +61,12 @@ private:
     
     bool predict(const DTCNode * node,
                  const Eigen::VectorXd & feature,
-                 Eigen::VectorXd & prob) const;   
+                 Eigen::VectorXd & prob) const;
+    
+    void computeProximity(const DTCNode * node,
+                          const vector<Eigen::VectorXd> & features,
+                          const vector<unsigned int> & indices,
+                          DTProximity & proximity) const;
     
     
 };

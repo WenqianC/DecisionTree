@@ -138,7 +138,7 @@ bool DTCTree::configureNode(const vector<VectorXd> & features,
         }
         prob /= indices.size();
         node->prob_ = prob;
-        if (tree_param_.verbose_) {
+        if (tree_param_.verbose_leaf_) {
             printf("leaf node depth size %d    %lu\n", node->depth_, indices.size());
             cout<<"probability: \n"<<node->prob_.transpose()<<endl<<endl;;
         }
@@ -216,7 +216,7 @@ bool DTCTree::configureNode(const vector<VectorXd> & features,
         }
         prob /= indices.size();
         node->prob_ = prob;
-        if (tree_param_.verbose_) {
+        if (tree_param_.verbose_leaf_) {
             printf("leaf node depth size %d    %lu\n", node->depth_, indices.size());
             cout<<"probability: \n"<<node->prob_.transpose()<<endl<<endl;;
         }
@@ -244,6 +244,14 @@ bool DTCTree::predict(const Eigen::VectorXd & feature,
     }
     prob.maxCoeff(&pred);
     return true;    
+}
+
+void DTCTree::computeProximity(const vector<Eigen::VectorXd> & features,
+                               const vector<unsigned int> & indices,
+                               DTProximity & proximity) const
+{
+    assert(root_);
+    this->computeProximity(root_, features, indices, proximity);    
 }
 
 const DTCTreeParameter & DTCTree::getTreeParameter(void) const
@@ -278,6 +286,44 @@ bool DTCTree::predict(const DTCNode * node,
     {
         printf("Warning: prediction can not find proper split value\n");
         return false;
+    }
+}
+
+void DTCTree::computeProximity(const DTCNode * node,
+                               const vector<Eigen::VectorXd> & features,
+                               const vector<unsigned int> & indices,
+                               DTProximity & proximity) const
+{
+    assert(node);
+    if (node->is_leaf_) {
+        for (int i = 0; i<indices.size(); i++) {
+            for (int j = i+1; j<indices.size(); j++) {
+                proximity.addExample(indices[i], indices[j]);
+            }
+        }
+        return;
+    }
+    
+    int dim = node->split_param_.split_dim_;
+    double threshold = node->split_param_.split_threshold_;
+    vector<unsigned int> left_indices;
+    vector<unsigned int> right_indices;
+    for (int i = 0; i<indices.size(); i++) {
+        double feat = features[indices[i]][dim];
+        if (feat < threshold) {
+            left_indices.push_back(indices[i]);
+        }
+        else {
+            right_indices.push_back(indices[i]);
+        }
+    }
+    assert(left_indices.size() + right_indices.size() == indices.size());
+    
+    if (node->left_child_ && left_indices.size() > 0) {
+        this->computeProximity(node->left_child_, features, left_indices, proximity);
+    }
+    if (node->right_child_ && right_indices.size() > 0) {
+        this->computeProximity(node->right_child_, features, right_indices, proximity);
     }
 }
 

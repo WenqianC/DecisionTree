@@ -23,7 +23,8 @@ namespace matio {
     bool readMatrix(const char *file_name, const char *var_name, matrixT & data);
     
     
-    // only support Eigen::MatrixXd
+    // support Eigen::MatrixXd, Eigen::MatrixXf
+    // In .mat file, both are in double format
     template<class matrixT>
     bool writeMatrix(const char *file_name, const char *var_name, const matrixT& data);
     
