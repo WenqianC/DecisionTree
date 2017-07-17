@@ -47,8 +47,8 @@ public:
     template <class T>
     static void meanStddev(const vector<T> & labels, const vector<unsigned int> & indices, T & mean, T & sigma);
     
-    template <class T>
-    static T mean(const vector<T> & data, const vector<unsigned int> & indices);
+    template <class vectorT, class indexT>
+    static vectorT mean(const vector<vectorT> & data, const vector<indexT> & indices);
     
     template <class T>
     static T mean(const vector<T> & data);

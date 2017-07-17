@@ -191,12 +191,12 @@ void DTUtil::meanStddev(const vector<T> & labels, const vector<unsigned int> & i
     }
 }
 
-template <class T>
-T DTUtil::mean(const vector<T> & data, const vector<unsigned int> & indices)
+template <class vectorT, class indexT>
+vectorT DTUtil::mean(const vector<vectorT> & data, const vector<indexT> & indices)
 {
     assert(indices.size() > 0);
     
-    T m = T::Zero(data[0].size());
+    vectorT m = vectorT::Zero(data[0].size());
     
     for (int i = 0; i<indices.size(); i++) {
         int index = indices[i];
@@ -409,6 +409,9 @@ DTUtil::meanStddev(const vector<Eigen::VectorXf> & labels, const vector<unsigned
 
 template Eigen::VectorXf
 DTUtil::mean(const vector<Eigen::VectorXf> & data, const vector<unsigned int> & indices);
+
+template Eigen::VectorXf
+DTUtil::mean(const vector<Eigen::VectorXf> & data, const vector<int> & indices);
 
 template Eigen::VectorXf
 DTUtil::mean(const vector<Eigen::VectorXf> & data);
