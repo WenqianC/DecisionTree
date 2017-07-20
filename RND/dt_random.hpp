@@ -27,9 +27,11 @@ public:
     
 public:
     // out of bagging sampling, the random number generator is related to the machine time
-    static void outof_bag_sampling(const unsigned int N,
-                                   vector<unsigned int> & bootstrapped,
-                                   vector<unsigned int> & outof_bag);
+    template <class integerT>
+    static void outofBagSampling(const unsigned int N,
+                                   vector<integerT> & bootstrapped,
+                                   vector<integerT> & outof_bag);
+    
     
     static vector<double>
     generateRandomNumber(const double min_v, const double max_v, int num);

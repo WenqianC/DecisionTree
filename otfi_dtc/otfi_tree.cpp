@@ -16,6 +16,7 @@ using std::endl;
 OTFITree::OTFITree()
 {
     root_ = NULL;
+    feature_dims_ = 0;
 }
 
 OTFITree::~OTFITree()
@@ -24,6 +25,16 @@ OTFITree::~OTFITree()
         delete root_;
         root_ = NULL;
     }
+}
+
+const OTFITree::TreeParameter & OTFITree::getTreeParameter(void) const
+{
+    return tree_param_;
+}
+
+void OTFITree::setTreeParameter(const TreeParameter & param)
+{
+    tree_param_ = param;
 }
 
 bool OTFITree::buildTree(const vector<Eigen::VectorXf> & features,
@@ -36,10 +47,10 @@ bool OTFITree::buildTree(const vector<Eigen::VectorXf> & features,
    
     
     tree_param_ = param;
+    feature_dims_ = (int)features[0].size();
     root_ = new Node(0);
     
-    return this->buildTreeImpl(features, labels, indices,
-                               root_);
+    return this->buildTreeImpl(features, labels, indices, root_);
 }
 
 bool OTFITree::buildTreeImpl(const vector<Eigen::VectorXf> & features,
@@ -58,12 +69,12 @@ bool OTFITree::buildTreeImpl(const vector<Eigen::VectorXf> & features,
     const int dim = (int)features[0].size();
     
     // Step 1: check if stop data splitting, [0, max_depth)
-    if (depth >= max_depth|| indices.size() <= min_leaf_node) {
+    if (depth >= max_depth || indices.size() <= min_leaf_node) {
         return this->setLeafNode(features, labels, indices, node);
     }
     
     // randomly select a subset of dimensions
-    vector<int> dims = DTUtil::range<int>(0, 1, dim);
+    vector<int> dims = DTUtil::range<int>(0, dim, 1);
     std::random_shuffle(dims.begin(), dims.end());
     vector<unsigned int> random_dim(dims.begin(), dims.begin() + candidate_dim_num);
     assert(random_dim.size() > 0 && random_dim.size() <= dims.size());
@@ -104,8 +115,7 @@ bool OTFITree::buildTreeImpl(const vector<Eigen::VectorXf> & features,
                    right_indices.size(),
                    100.0*left_indices.size()/indices.size());
         }
-        // set internal node
-        this->buildTreeImpl(features, labels, indices, node);
+        node->split_param_ = split_param;
         
         if (left_indices.size() != 0) {
             NodePtr left_node = new Node(depth + 1);
@@ -137,7 +147,7 @@ bool OTFITree::bestSplitParameter(const vector<VectorXf> & features,
     double min_v = std::numeric_limits<double>::max();
     double max_v = std::numeric_limits<double>::min();
     const int rand_num = tree_param_.candidate_threshold_num_;
-    const int min_split_num = tree_param_.min_split_num_;
+    const int min_split_num = tree_param_.min_leaf_node_num_/2 + 1;
     const int category_num  = tree_param_.category_num_;
     
     // randomly select number in a range
@@ -217,11 +227,10 @@ bool OTFITree::setLeafNode(const vector<Eigen::VectorXf> & features,
                              const vector<int> & labels,
                              const vector<int> & indices,
                              NodePtr node)
-{  
-    const int category_num = tree_param_.category_num_;
-   
-    
+{    
+    const int category_num = tree_param_.category_num_;    
     node->is_leaf_ = true;
+    
     Eigen::VectorXf prob = Eigen::VectorXf::Zero(category_num);
     for (int i = 0; i<indices.size(); i++) {
         const int label = labels[indices[i]];   // tree depth is related to time step
@@ -240,15 +249,20 @@ bool OTFITree::setLeafNode(const vector<Eigen::VectorXf> & features,
 
 bool OTFITree::imputeFeature(const vector<Eigen::VectorXf> & features,
                       const vector<int> & labels,
-                      const vector<int> & indices,
-                      vector<Eigen::VectorXf> & mdata_features,  // output
+                      const vector<int> & indices,                      
                       const vector<int> & mdata_labels,
                       const vector<int> & mdata_indices,
-                      const float mdata_mask) const
+                      const float mdata_mask,
+                      vector<Eigen::VectorXf> & mdata_features,  // output
+                      vector<float>& weight) const
 {
     assert(root_);
-    return this->imputeFeatureImpl(root_, features, labels, indices, mdata_features, mdata_labels, mdata_indices, mdata_mask);
+    return this->imputeFeatureImpl(root_, features, labels, indices, 
+            mdata_labels, mdata_indices, mdata_mask,
+            mdata_features, weight);
 }
+
+
 
 static bool isSameValue(const float v1, const float v2)
 {
@@ -258,27 +272,30 @@ static bool isSameValue(const float v1, const float v2)
 bool OTFITree::imputeFeatureImpl(const NodePtr node,
                                  const vector<Eigen::VectorXf> & features,
                                  const vector<int> & labels,
-                                 const vector<int> & indices,
-                                 vector<Eigen::VectorXf> & mdata_features,  // output
+                                 const vector<int> & indices,                                   
                                  const vector<int> & mdata_labels,
                                  const vector<int> & mdata_indices,
-                                 const float mdata_mask) const
+                                 const float mdata_mask,
+                                 vector<Eigen::VectorXf> & mdata_features,
+                                 vector<float>& weight) const
 {
     assert(node);
     if (node->is_leaf_) {
         assert(indices.size() > 0);
-        if (mdata_indices.size() > 0) {
-            // mean value of features
-            Eigen::VectorXf feat_mean;
-            DTUtil::mean<Eigen::VectorXf>(features, indices);
-            // @todo using a weighted version?
-            for (int i = 0; i<mdata_indices.size(); i++) {
-                int index = mdata_indices[i];
-                assert(mdata_features[index].size() == feat_mean.size());
-                for (int j = 0; j< feat_mean.size(); j++) {
-                    if (isSameValue(mdata_features[index][j],  mdata_mask)) {
-                        mdata_features[index][j] = feat_mean[j];
-                    }
+        // mean value of features
+        Eigen::VectorXf feat_mean = DTUtil::mean<Eigen::VectorXf>(features, indices);
+        
+        // @using a weighted version,
+        for (int i = 0; i<mdata_indices.size(); i++) {
+            int index = mdata_indices[i];
+            int label = mdata_labels[index];
+            assert(label >= 0 && label < node->prob_.size());
+            assert(mdata_features[index].size() == feat_mean.size());
+            for (int d = 0; d< feat_mean.size(); d++) {
+                // the missing value has same value as mdata_mask
+                if (isSameValue(mdata_features[index][d],  mdata_mask)) {
+                    mdata_features[index][d] = feat_mean[d];
+                    weight[index] = node->prob_[label];
                 }
             }
         }
@@ -303,7 +320,7 @@ bool OTFITree::imputeFeatureImpl(const NodePtr node,
         }
     }
     assert(left_indices.size() + right_indices.size() == indices.size());
-    assert(left_indices.size() !=0 && right_indices.size() != 0);
+    assert(left_indices.size() != 0 && right_indices.size() != 0);    
     
     vector<int> mdata_left_indices;
     vector<int> mdata_right_indices;
@@ -326,16 +343,60 @@ bool OTFITree::imputeFeatureImpl(const NodePtr node,
     if (mdata_left_indices.size() > 0) {
         this->imputeFeatureImpl(node->left_child_,
                                 features, labels, left_indices,
-                                mdata_features, mdata_labels, mdata_left_indices,
-                                mdata_mask);
+                                mdata_labels, mdata_left_indices,
+                                mdata_mask,
+                                mdata_features, weight);
     }
     
     if (mdata_right_indices.size() > 0) {
         this->imputeFeatureImpl(node->right_child_,
                                 features, labels, right_indices,
-                                mdata_features, mdata_labels, mdata_right_indices,
-                                mdata_mask);
+                                mdata_labels, mdata_right_indices,
+                                mdata_mask,
+                                mdata_features, weight);
     }
     
     return true;
 }
+
+bool OTFITree::predict(const Eigen::VectorXf & feature,
+                       Eigen::VectorXf & prob) const
+{
+    assert(root_);
+    return this->predictImpl(root_, feature, prob);
+}
+
+bool OTFITree::predict(const Eigen::VectorXf & feature,
+                       int & pred) const
+{
+    Eigen::VectorXf prob;
+    bool isPred = this->predict(feature, prob);
+    if (!isPred) {
+        return false;
+    }
+    prob.maxCoeff(&pred);
+    return true;
+}
+
+bool OTFITree::predictImpl(const NodePtr node,
+                           const Eigen::VectorXf & feature,
+                           Eigen::VectorXf & prob) const
+{
+    assert(node);
+    if (node->is_leaf_) {
+        prob = node->prob_;
+        return true;
+    }
+    double feat = feature[node->split_param_.dim_];
+    if (feat < node->split_param_.threshold_ && node->left_child_) {
+        return this->predictImpl(node->left_child_, feature, prob);
+    }
+    else if (node->right_child_) {
+        return this->predictImpl(node->right_child_, feature, prob);
+    }
+    else {
+        printf("Warning: prediction can not find proper split value\n");
+        return false;
+    }
+}
+

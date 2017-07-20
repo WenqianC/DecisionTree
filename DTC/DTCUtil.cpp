@@ -68,7 +68,8 @@ DTCUtil::confusionMatrix(const vector<Eigen::VectorXd> & probs, const vector<uns
 }
 
 Eigen::MatrixXd
-DTCUtil::confusionMatrix(const vector<unsigned int> & preds, const vector<unsigned int> & labels,
+DTCUtil::confusionMatrix(const vector<unsigned int> & preds,
+                         const vector<unsigned int> & labels,
                          const int category_num,
                          bool normalize)
 {

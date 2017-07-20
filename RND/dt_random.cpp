@@ -44,15 +44,16 @@ vector<double> DTRandom::getRandomNumbers(const double min_v, const double max_v
     return values;
 }
 
-void DTRandom::outof_bag_sampling(const unsigned int N,
-                                  vector<unsigned int> & bootstrapped,
-                                  vector<unsigned int> & outof_bag)
+template <class integerT>
+void DTRandom::outofBagSampling(const unsigned int N,
+                                  vector<integerT> & bootstrapped,
+                                  vector<integerT> & outof_bag)
 {
     vnl_random rnd;
     
     vector<bool> isPicked(N, false);
     for (int i = 0; i<N; i++) {
-        int idx = rnd.lrand32(0, N-1);
+        integerT idx = rnd.lrand32(0, N-1);
         bootstrapped.push_back(idx);
         isPicked[idx] = true;
     }
@@ -85,3 +86,13 @@ DTRandom::randomNumber(const double min_v, const double max_v)
     vnl_random rnd;
     return rnd.drand32(min_v, max_v);
 }
+
+template
+void DTRandom::outofBagSampling(const unsigned int N,
+                                vector<int> & bootstrapped,
+                                vector<int> & outof_bag);
+
+template
+void DTRandom::outofBagSampling(const unsigned int N,
+                                vector<unsigned int> & bootstrapped,
+                                vector<unsigned int> & outof_bag);

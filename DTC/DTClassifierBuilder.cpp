@@ -45,7 +45,7 @@ bool DTClassifierBuilder::buildModel(DTClassifer & model,
         // bagging
         vector<unsigned int> training_indices;
         vector<unsigned int> validation_indices;
-        DTRandom::outof_bag_sampling((unsigned int) features.size(), training_indices, validation_indices);
+        DTRandom::outofBagSampling<unsigned int>((unsigned int) features.size(), training_indices, validation_indices);
         
         DTCTree * tree = new DTCTree();
         assert(tree);

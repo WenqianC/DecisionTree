@@ -356,10 +356,11 @@ int DTUtil::minLabelNumber(const vector<VectorXi> & labels,
     return *std::min_element(num.begin(), num.end());
 }
 
-Eigen::MatrixXd
-DTUtil::confusionMatrix(const vector<unsigned int> & preds, const vector<unsigned int> & labels,
-                        const int category_num,
-                        bool normalize)
+template <class integerType>
+Eigen::MatrixXd DTUtil::confusionMatrix(const vector<integerType> & preds,
+                                        const vector<integerType> & labels,
+                                        const int category_num,
+                                        bool normalize)
 {
     assert(preds.size() == labels.size());
     assert(category_num > 0);
@@ -425,6 +426,19 @@ DTUtil::meanMedianError(const vector<Eigen::VectorXf> & errors, Eigen::VectorXf 
 
 template void
 DTUtil::matrixMeanError(const vector<Eigen::MatrixXf> & errors, Eigen::MatrixXf & mean);
+
+
+template Eigen::MatrixXd
+DTUtil::confusionMatrix(const vector<unsigned int> & preds,
+                        const vector<unsigned int> & labels,
+                        const int category_num,
+                        bool normalize);
+
+template Eigen::MatrixXd
+DTUtil::confusionMatrix(const vector<int> & preds,
+                        const vector<int> & labels,
+                        const int category_num,
+                        bool normalize);
 
 
 

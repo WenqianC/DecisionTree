@@ -83,9 +83,9 @@ public:
                               const int time_step,
                               const int num_category);
     
-    
-    static Eigen::MatrixXd confusionMatrix(const vector<unsigned int> & predictions,
-                                           const vector<unsigned int> & labels,
+    template <class integerType>
+    static Eigen::MatrixXd confusionMatrix(const vector<integerType> & predictions,
+                                           const vector<integerType> & labels,
                                            const int category_num,
                                            bool normalize);
     

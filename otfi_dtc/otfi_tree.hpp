@@ -23,6 +23,8 @@ using Eigen::VectorXf;
 
 class OTFITree
 {
+    friend class OTFIClassifier;
+    
     typedef OTFITreeNode Node;
     typedef OTFITreeNode* NodePtr;
     typedef OTFITreeParameter TreeParameter;
@@ -31,12 +33,15 @@ class OTFITree
 private:
     NodePtr root_;
     TreeParameter tree_param_;
-   
-    DTRandom rnd_generator_;
+    DTRandom rnd_generator_;    
+    int feature_dims_;
     
 public:
     OTFITree();
     ~OTFITree();
+
+    const OTFITree::TreeParameter & getTreeParameter(void) const;
+    void setTreeParameter(const TreeParameter & param);
     
     // build a decision tree using training examples
     // features: sampled image pixel locations
@@ -53,14 +58,24 @@ public:
     // mdata_features: missing data feature,
     // mdata_mask: missing data mask,
     bool imputeFeature(const vector<Eigen::VectorXf> & features,
-                const vector<int> & labels,
-                const vector<int> & indices,
-                vector<Eigen::VectorXf> & mdata_features,  // output
-                const vector<int> & mdata_labels,
-                const vector<int> & mdata_indices,
-                const float mdata_mask) const;
+                       const vector<int> & labels,
+                       const vector<int> & indices,
+                       const vector<int> & mdata_labels,
+                       const vector<int> & mdata_indices,
+                       const float mdata_mask,
+                       vector<Eigen::VectorXf> & mdata_features,  // output
+                       vector<float> & weight) const; // output
+        
+    bool predict(const Eigen::VectorXf & feature,
+                 int & pred) const;
+
+    bool predict(const Eigen::VectorXf & feature,
+                 Eigen::VectorXf & prob) const;
+
     
+
 private:
+    
     bool buildTreeImpl(const vector<Eigen::VectorXf> & features,
                        const vector<int> & labels,
                        const vector<int> & indices,
@@ -81,11 +96,16 @@ private:
     bool imputeFeatureImpl(const NodePtr node,
                 const vector<Eigen::VectorXf> & features,
                 const vector<int> & labels,
-                const vector<int> & indices,
-                vector<Eigen::VectorXf> & mdata_features,  // output
+                const vector<int> & indices,               
                 const vector<int> & mdata_labels,
                 const vector<int> & mdata_indices,
-                const float mdata_mask) const;
+                const float mdata_mask,
+                vector<Eigen::VectorXf> & mdata_features,  // output
+                vector<float> & weight) const; // output
+    
+    bool predictImpl(const NodePtr node,
+                     const Eigen::VectorXf & feature,
+                     Eigen::VectorXf & prob) const;
     
     
     

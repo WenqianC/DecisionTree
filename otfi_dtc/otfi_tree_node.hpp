@@ -13,11 +13,11 @@
 #include <Eigen/Dense>
 #include "otfi_util.hpp"
 
-class OTFITree;
 
 class OTFITreeNode
 {
-    friend OTFITree;
+    friend class OTFIClassifier;
+    friend class OTFITree;
     
     typedef OTFITreeNode Node;
     typedef Node* NodePtr;
@@ -43,6 +43,16 @@ public:
         is_leaf_ = false;
     }
     ~OTFITreeNode();
+
+    static bool writeTree(const char *fileName,                         
+                          NodePtr root);
+    
+    static bool readTree(const char *fileName,
+                         const int category_num,                         
+                         NodePtr & root);
+private:
+    static void writeNode(FILE *pf, const NodePtr node);
+    static void readNode(FILE *pf, const int category_num, NodePtr & node);
 };
 
 #endif /* defined(__SequentialRandomForest__otfi_tree_node__) */
