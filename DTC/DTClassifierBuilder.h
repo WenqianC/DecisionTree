@@ -10,8 +10,10 @@
 #define __Classifer_RF__DTClassifierBuilder__
 
 #include <stdio.h>
+#include <Eigen/Dense>
 #include "DTClassifier.h"
 
+using Eigen::VectorXf;
 
 class DTClassifierBuilder
 {
@@ -23,17 +25,17 @@ public:
     void setTreeParameter(const DTCTreeParameter & param);
     
     bool buildModel(DTClassifer & model,
-                    const vector<VectorXd> & features,
-                    const vector<unsigned int> & labels,
-                    const vector<VectorXd> & valid_features,
-                    const vector<unsigned int>& valid_labels,
+                    const vector<VectorXf> & features,
+                    const vector<int> & labels,
+                    const vector<VectorXf> & valid_features,
+                    const vector<int>& valid_labels,
                     const char * model_file_name = NULL) const;
     
     //features: a group of features, each group is from a single image
     //labels  : corresponding label
     bool buildModel(DTClassifer & model,
-                    const vector< vector<VectorXd> > & features,
-                    const vector< vector<unsigned int> > & labels,
+                    const vector< vector<VectorXf> > & features,
+                    const vector< vector<int> > & labels,
                     const int max_num_frames,
                     const char * model_file_name = NULL) const;
     

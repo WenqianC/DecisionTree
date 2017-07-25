@@ -13,19 +13,62 @@
 #include <vector>
 #include <Eigen/Dense>
 #include "DTCUtil.h"
+#include "dt_random.hpp"
 #include "dt_proximity.hpp"
 
-using std::vector;
-using Eigen::VectorXd;
 
-class DTCNode;
+using std::vector;
+using Eigen::VectorXf;
+
+
 // decision tree classifier Tree
 class DTCTree
 {
     friend class DTClassifer;
     
-    DTCNode * root_;
-    DTCTreeParameter tree_param_;
+    typedef DTCSplitParameter SplitParameter;
+    typedef DTCTreeParameter  TreeParameter;
+    
+    // internal data structures
+    struct Node
+    {
+        Node* left_child_;
+        Node* right_child_;
+        int depth_;
+        bool is_leaf_;
+        
+        SplitParameter split_param_;  // split parameter
+        int sample_num_;
+        double sample_percentage_;    // sample percentage of parent node
+        
+        VectorXf prob_;  // label probability, leaf node
+   
+        Node(int depth) {
+            left_child_ = NULL;
+            right_child_ = NULL;
+            depth_ = depth;
+            is_leaf_ = false;
+            
+            sample_num_ = 0;
+            sample_percentage_ = 0.0;
+        }
+        ~Node() {
+            if (left_child_) {
+                delete left_child_;
+                left_child_ = NULL;
+            }
+            if (right_child_) {
+                delete right_child_;
+                right_child_ = NULL;
+            }
+        }
+    };
+    
+    typedef Node* NodePtr;
+    
+    NodePtr root_;
+    TreeParameter tree_param_;
+    DTRandom rnd_generator_;
     
 public:
     DTCTree(){root_ = NULL;}
@@ -34,39 +77,59 @@ public:
     // features:
     // labels: 0 - N-1
     // indices:
-    bool buildTree(const vector<VectorXd> & features,
-                   const vector<unsigned int> & labels,
-                   const vector<unsigned int> & indices,
-                   const DTCTreeParameter & param);
+    bool buildTree(const vector<VectorXf> & features,
+                   const vector<int> & labels,
+                   const vector<int> & indices,
+                   const TreeParameter & param);
     
-    bool predict(const Eigen::VectorXd & feature,
-                 Eigen::VectorXd & prob) const;
+    bool predict(const Eigen::VectorXf & feature,
+                 Eigen::VectorXf & prob) const;
     
-    bool predict(const Eigen::VectorXd & feature,
+    bool predict(const Eigen::VectorXf & feature,
                  unsigned int & pred) const;
     
-    const DTCTreeParameter & getTreeParameter(void) const;
-    void setTreeParameter(const DTCTreeParameter & param);
+    const TreeParameter & getTreeParameter(void) const;
+    void setTreeParameter(const TreeParameter & param);
     
     // computer proximity matrix which measures the similarity between examples
-    void computeProximity(const vector<Eigen::VectorXd> & features,
-                          const vector<unsigned int> & indices,
+    void computeProximity(const vector<Eigen::VectorXf> & features,
+                          const vector<int> & indices,
                           DTProximity & proximity) const;
+    
     
 private:
-    bool configureNode(const vector<VectorXd> & features,
-                       const vector<unsigned int> & labels,
-                       const vector<unsigned int> & indices,
-                       DTCNode * node);
+    bool configureNode(const vector<VectorXf> & features,
+                       const vector<int> & labels,
+                       const vector<int> & indices,
+                       NodePtr node);
     
-    bool predict(const DTCNode * node,
-                 const Eigen::VectorXd & feature,
-                 Eigen::VectorXd & prob) const;
+    bool setLeafNode(const vector<Eigen::VectorXf> & features,
+                     const vector<int> & labels,
+                     const vector<int> & indices,
+                     NodePtr node);
     
-    void computeProximity(const DTCNode * node,
-                          const vector<Eigen::VectorXd> & features,
-                          const vector<unsigned int> & indices,
+    bool bestSplitParameter(const vector<VectorXf> & features,
+                            const vector<int> & labels,
+                            const vector<int> & indices,
+                            DTCSplitParameter & split_param,
+                            vector<int> & left_indices,
+                            vector<int> & right_indices);
+
+    
+    bool predict(const NodePtr node,
+                 const Eigen::VectorXf & feature,
+                 Eigen::VectorXf & prob) const;
+    
+    void computeProximity(const NodePtr node,
+                          const vector<Eigen::VectorXf> & features,
+                          const vector<int> & indices,
                           DTProximity & proximity) const;
+    
+    bool writeTree(const char *fileName) const;
+    bool readTree(const char *fileName);
+    
+    static void writeNode(FILE *pf, const NodePtr node);
+    static void readNode(FILE *pf, NodePtr & node);
     
     
 };

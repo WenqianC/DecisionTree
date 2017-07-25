@@ -163,6 +163,7 @@ public:
     }
 };
 
+/*
 class DTCUtil
 {
 public:
@@ -187,6 +188,7 @@ public:
     confusionMatrix(const vector<unsigned int> & preds, const vector<unsigned int> & labels,
                     const int category_num, bool normalize = false);
 };
+ */
 
 
 

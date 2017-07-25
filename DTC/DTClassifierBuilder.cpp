@@ -22,10 +22,10 @@ void DTClassifierBuilder::setTreeParameter(const DTCTreeParameter & param)
 }
 
 bool DTClassifierBuilder::buildModel(DTClassifer & model,
-                                     const vector<VectorXd> & features,
-                                     const vector<unsigned int> & labels,
-                                     const vector<VectorXd> & valid_features,
-                                     const vector<unsigned int>& valid_labels,
+                                     const vector<VectorXf> & features,
+                                     const vector<int> & labels,
+                                     const vector<VectorXf> & valid_features,
+                                     const vector<int>& valid_labels,
                                      const char * model_file_name) const
 {
     assert(features.size() == labels.size());
@@ -43,9 +43,9 @@ bool DTClassifierBuilder::buildModel(DTClassifer & model,
     
     for (int n = 0; n<tree_num; n++) {
         // bagging
-        vector<unsigned int> training_indices;
-        vector<unsigned int> validation_indices;
-        DTRandom::outofBagSampling<unsigned int>((unsigned int) features.size(), training_indices, validation_indices);
+        vector<int> training_indices;
+        vector<int> validation_indices;
+        DTRandom::outofBagSampling<int>((unsigned int) features.size(), training_indices, validation_indices);
         
         DTCTree * tree = new DTCTree();
         assert(tree);
@@ -56,11 +56,11 @@ bool DTClassifierBuilder::buildModel(DTClassifer & model,
         printf("build tree %d cost %lf minutes\n", n, (clock()- tt)/CLOCKS_PER_SEC/60.0);
         
         // test on the validation data
-        vector<unsigned int> cv_predictions;
-        vector<unsigned int> cv_labels;
+        vector<int> cv_predictions;
+        vector<int> cv_labels;
         for (int i = 0; i<validation_indices.size(); i++) {
             const int index = validation_indices[i];
-            unsigned int pred;
+            int pred;
             model.predict(features[index], pred);
             cv_predictions.push_back(pred);
             cv_labels.push_back(labels[index]);            
@@ -73,20 +73,20 @@ bool DTClassifierBuilder::buildModel(DTClassifer & model,
         }
         
         if (valid_features.size() != 0) {
-            vector<unsigned int> valid_predictions;
+            vector<int> valid_predictions;
             for (int i = 0; i<valid_features.size(); i++) {
-                unsigned int pred = 0;
+                int pred = 0;
                 model.predict(valid_features[i], pred);
                 valid_predictions.push_back(pred);
             }
             assert(valid_predictions.size() == valid_labels.size());
-            Eigen::MatrixXd valid_conf = DTCUtil::confusionMatrix(valid_predictions, valid_labels, category_num, false);
+            Eigen::MatrixXd valid_conf = DTUtil::confusionMatrix<int>(valid_predictions, valid_labels, category_num, false);
             Eigen::VectorXd accuracy = DTUtil::accuracyFromConfusionMatrix(valid_conf);
             cout<<"Validation confusion matrix: \n"<<valid_conf<<endl;
             cout<<"Validation accuracy: \n"<<accuracy.transpose()<<endl;
         }
         if (is_proximity) {
-            vector<unsigned int> indices = DTUtil::range<unsigned int>(0, (int)features.size(), 1);
+            vector<int> indices = DTUtil::range<int>(0, (int)features.size(), 1);
             tree->computeProximity(features, indices, data_proximity);
             
             
@@ -104,8 +104,8 @@ bool DTClassifierBuilder::buildModel(DTClassifer & model,
 
 
 bool DTClassifierBuilder::buildModel(DTClassifer & model,
-                                     const vector< vector<VectorXd> > & features,
-                                     const vector< vector<unsigned int> > & labels,
+                                     const vector< vector<VectorXf> > & features,
+                                     const vector< vector<int> > & labels,
                                      const int max_num_frames,
                                      const char * model_file_name) const
 {
@@ -119,15 +119,15 @@ bool DTClassifierBuilder::buildModel(DTClassifer & model,
     const int category_num = tree_param_.category_num_;
     for (int n = 0; n<tree_num; n++) {
         // randomly select frames
-        vector<Eigen::VectorXd> train_features;
-        vector<unsigned int> train_labels;
+        vector<Eigen::VectorXf> train_features;
+        vector<int> train_labels;
         for (int i = 0; i<max_num_frames; i++) {
             int rnd_idx = rand()%features.size();
             train_features.insert(train_features.end(), features[rnd_idx].begin(), features[rnd_idx].end());
             train_labels.insert(train_labels.end(), labels[rnd_idx].begin(), labels[rnd_idx].end());
         }
         
-        vector<unsigned int> training_indices;
+        vector<int> training_indices;
         for (int i = 0; i<train_features.size(); i++) {
             training_indices.push_back(i);
         }
@@ -145,17 +145,17 @@ bool DTClassifierBuilder::buildModel(DTClassifer & model,
         }
         
         // single tree validataion error
-        vector<Eigen::VectorXd> validation_features;
-        vector<unsigned int> validation_labels;
+        vector<Eigen::VectorXf> validation_features;
+        vector<int> validation_labels;
         for (int i = 0; i<10; i++) {
             int rnd_idx = rand()%features.size();
             validation_features.insert(validation_features.end(), features[rnd_idx].begin(), features[rnd_idx].end());
             validation_labels.insert(validation_labels.end(), labels[rnd_idx].begin(), labels[rnd_idx].end());
         }
         
-        vector<unsigned int> cv_predictions;
+        vector<int> cv_predictions;
         for (int i = 0; i<validation_features.size(); i++) {
-            unsigned int pred;
+            int pred;
             bool is_pred = model.predict(validation_features[i], pred);
             assert(is_pred);
             if (is_pred) {
@@ -163,7 +163,7 @@ bool DTClassifierBuilder::buildModel(DTClassifer & model,
             }
         }
         
-        Eigen::MatrixXd confusion = DTCUtil::confusionMatrix(cv_predictions, validation_labels, category_num, true);
+        Eigen::MatrixXd confusion = DTUtil::confusionMatrix<int>(cv_predictions, validation_labels, category_num, true);
         cout<<"cross validation confusion matrix: \n"<<confusion<<" from 10 images.\n";
     }
     

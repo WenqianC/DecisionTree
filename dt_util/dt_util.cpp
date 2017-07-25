@@ -293,8 +293,7 @@ void DTUtil::matrixMeanError(const vector<MatrixType> & errors, MatrixType & mea
 }
 
 
-double
-DTUtil::crossEntropy(const VectorXd & prob)
+double DTUtil::crossEntropy(const Eigen::VectorXd & prob)
 {
     double entropy = 0.0;
     for (int i = 0; i<prob.size(); i++) {
@@ -329,6 +328,18 @@ DTUtil::isSameLabel(const vector<unsigned int> & labels, const vector<unsigned i
         }
     }
     return true;
+}
+
+bool DTUtil::isSameLabel(const vector<int>& labels, const vector<int>& indices)
+{
+    assert(indices.size() >= 1);
+    int label = labels[indices[0]];
+    for (int i = 1; i<indices.size(); i++) {
+        if (label != labels[indices[i]]) {
+            return false;
+        }
+    }
+    return true;    
 }
 
 int DTUtil::minLabelNumber(const vector<unsigned int> & labels, const vector<unsigned int> & indices,

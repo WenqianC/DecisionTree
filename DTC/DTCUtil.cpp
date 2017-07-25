@@ -10,6 +10,7 @@
 #include "vnl_random.h"
 #include <assert.h>
 
+/*
 vector<double>
 DTCUtil::generateRandomNumber(const double min_v, const double max_v, int num)
 {
@@ -85,6 +86,7 @@ DTCUtil::confusionMatrix(const vector<unsigned int> & preds,
     }
     return confusion;
 }
+ */
 
 
 

@@ -24,11 +24,11 @@ class DTClassifer
     DTCTreeParameter tree_param_;
 public:
     
-    bool predict(const Eigen::VectorXd & feature,
-                 Eigen::VectorXd & prob) const;
+    bool predict(const Eigen::VectorXf & feature,
+                 Eigen::VectorXf & prob) const;
     
-    bool predict(const Eigen::VectorXd & feature,
-                 unsigned int & pred);
+    bool predict(const Eigen::VectorXf & feature,
+                 int & pred);
     
     bool save(const char *fileName) const;
     bool load(const char *fileName);

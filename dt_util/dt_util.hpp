@@ -67,11 +67,12 @@ public:
     static void matrixMeanError(const vector<MatrixType> & errors, MatrixType & mean);
     
    
-    static double crossEntropy(const VectorXd & prob);
+    static double crossEntropy(const Eigen::VectorXd & prob);
     
     static double balanceLoss(const int leftNodeSize, const int rightNodeSize);
     
     static bool isSameLabel(const vector<unsigned int> & labels, const vector<unsigned int> & indices);
+    static bool isSameLabel(const vector<int>& labels, const vector<int>& indices);
     
     // minimum number of examples in all category
     static int minLabelNumber(const vector<unsigned int> & labels,

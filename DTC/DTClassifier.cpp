@@ -7,19 +7,18 @@
 //
 
 #include "DTClassifier.h"
-#include "DTCNode.h"
 
 
-bool DTClassifer::predict(const Eigen::VectorXd & feature,
-                          Eigen::VectorXd & prob) const
+bool DTClassifer::predict(const Eigen::VectorXf & feature,
+                          Eigen::VectorXf & prob) const
 {
     assert(trees_.size() > 0);
     
     const DTCTreeParameter param = trees_[0]->getTreeParameter();
-    prob = Eigen::VectorXd::Zero(param.category_num_);
+    prob = Eigen::VectorXf::Zero(param.category_num_);
     
     for (int i = 0; i<trees_.size(); i++) {
-        Eigen::VectorXd p;
+        Eigen::VectorXf p;
         trees_[i]->predict(feature, p);
         prob += p;
     }
@@ -28,10 +27,10 @@ bool DTClassifer::predict(const Eigen::VectorXd & feature,
     return true;
 }
 
-bool DTClassifer::predict(const Eigen::VectorXd & feature,
-                          unsigned int & pred)
+bool DTClassifer::predict(const Eigen::VectorXf & feature,
+                          int & pred)
 {
-    Eigen::VectorXd prob;
+    Eigen::VectorXf prob;
     bool isPred = this->predict(feature, prob);
     if (!isPred) {
         return false;
@@ -49,7 +48,6 @@ bool DTClassifer::save(const char *fileName) const
         printf("Error: can not open file %s\n", fileName);
         return false;
     }
-  //  fprintf(pf, "%d %d\n", feature_dim_, label_dim_);
     
     tree_param_.writeToFile(pf);
     vector<string> tree_files;
@@ -65,13 +63,11 @@ bool DTClassifer::save(const char *fileName) const
     
     for (int i = 0; i<trees_.size(); i++) {
         if (trees_[i]) {
-            DTCNode::writeTree(tree_files[i].c_str(), trees_[i]->root_);
+            trees_[i]->writeTree(tree_files[i].c_str());
         }
     }
     fclose(pf);
     printf("save to %s\n", fileName);
-    return true;
-    
     return true;
 }
 
@@ -82,9 +78,6 @@ bool DTClassifer::load(const char *fileName)
         printf("Error: can not open file %s\n", fileName);
         return false;
     }
-    
-  //  int ret_num = fscanf(pf, "%d %d", &feature_dim_, &label_dim_);
-  //  assert(ret_num);
     
     bool is_read = tree_param_.readFromFile(pf);
     assert(is_read);
@@ -105,16 +98,11 @@ bool DTClassifer::load(const char *fileName)
     trees_.clear();
     
     // read each tree
-    for (int i = 0; i<treeFiles.size(); i++) {
-        
-        DTCNode * root = NULL;
-        bool isRead = false;
-        isRead = DTCNode::readTree(treeFiles[i].c_str(), root);
-        assert(isRead);
-        assert(root);
-        
+    for (int i = 0; i<treeFiles.size(); i++) {        
         DTCTree *tree = new DTCTree();
-        tree->root_ = root;
+        assert(tree);
+        bool is_read = tree->readTree(treeFiles[i].c_str());
+        assert(is_read);
         tree->setTreeParameter(tree_param_);
         trees_.push_back(tree);
         
