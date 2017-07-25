@@ -42,7 +42,8 @@ public:
                                 const vector<unsigned int> & indices);
     
     template <class Type1, class Type2>
-    static double spatialVariance(const vector<Type1> & labels, const vector<unsigned int> & indices, const vector<Type2> & wt);
+    static double spatialVariance(const vector<Type1> & labels,
+                                  const vector<unsigned int> & indices, const vector<Type2> & wt);
     
     template <class T>
     static void meanStddev(const vector<T> & labels, const vector<unsigned int> & indices, T & mean, T & sigma);

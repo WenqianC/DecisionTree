@@ -17,7 +17,7 @@
 #include <Eigen/Dense>
 
 #include "btrf_util.h"
-#include "dt_random.h"
+#include "dt_random.hpp"
 
 
 using std::vector;

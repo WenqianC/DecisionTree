@@ -8,10 +8,11 @@
 
 #include "btrf_tree.h"
 #include "btrf_tree_node.h"
-#include "dt_random.h"
+#include "dt_random.hpp"
 #include "cvx_util.hpp"
-#include "BTDTRUtil.h"
+#include "bt_dtr_util.h"
 #include <iostream>
+#include "dt_util.hpp"
 
 
 using std::cout;
@@ -72,7 +73,7 @@ bool BTRNDTree::buildTreeImpl(const vector<FeatureType> & features,
     
     // Early stop by checking standard deviation of labels,
     if (depth > tree_param_.max_depth_/2) {
-        double variance = BTDTRUtil::spatialVariance(labels, indices);
+        double variance = DTUtil::spatialVariance(labels, indices);
         double std_dev = sqrt(variance/indices.size());
         if (std_dev < tree_param_.min_split_node_std_dev_) {
             return this->setLeafNode(features, labels, indices, node);
@@ -253,15 +254,15 @@ BTRNDTree::optimizeThreshold(const vector<FeatureType> & features,
         
         if (depth <= max_balance_depth) {
             // Object one: sample-balanced objective
-            cur_loss = BTDTRUtil::inbalance_loss((int)cur_left_index.size(), (int)cur_right_index.size());
+            cur_loss = DTUtil::balanceLoss((int)cur_left_index.size(), (int)cur_right_index.size());
         }
         else {
             // Object two: spatial variance objective
-            cur_loss = BTDTRUtil::spatialVariance(labels, cur_left_index);
+            cur_loss = DTUtil::spatialVariance(labels, cur_left_index);
             if (cur_loss > min_loss) {
                 continue;
             }
-            cur_loss += BTDTRUtil::spatialVariance(labels, cur_right_index);
+            cur_loss += DTUtil::spatialVariance(labels, cur_right_index);
         }
         
         if (cur_loss < min_loss) {
@@ -292,11 +293,11 @@ bool BTRNDTree::setLeafNode(const vector<FeatureType> & features,
         int idx = indices[i];
         local_features[i] = features[idx].x_descriptor_;
     }
-    node->feat_mean_ = BTDTRUtil::mean<Eigen::VectorXf>(local_features);
+    node->feat_mean_ = DTUtil::mean<Eigen::VectorXf>(local_features);
     
     // 3D location mean and standard deviation
     node->is_leaf_ = true;
-    BTDTRUtil::meanStddev<Eigen::VectorXf>(labels, indices,
+    DTUtil::meanStddev<Eigen::VectorXf>(labels, indices,
                                            node->label_mean_,
                                            node->label_stddev_);
     leaf_node_num_++;

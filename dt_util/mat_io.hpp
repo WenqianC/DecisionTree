@@ -20,7 +20,7 @@ namespace matio {
     
     // suppport Eigen::MatrixXd, Eigen::MatrixXf and Eigen::MatrixXi
     template<class matrixT>
-    bool readMatrix(const char *file_name, const char *var_name, matrixT & data);
+    bool readMatrix(const char *file_name, const char *var_name, matrixT & data, bool verbose = true);
     
     
     // support Eigen::MatrixXd, Eigen::MatrixXf

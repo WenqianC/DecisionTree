@@ -21,7 +21,7 @@ using Eigen::Matrix;
 namespace matio {
     
     template<class matrixT>
-    bool readMatrix(const char *file_name, const char *var_name, matrixT & mat_data)
+    bool readMatrix(const char *file_name, const char *var_name, matrixT & mat_data, bool verbose)
     {
         assert(file_name);
         assert(var_name);
@@ -97,7 +97,7 @@ namespace matio {
         if (matfp != NULL) {
             Mat_Close(matfp);
         }
-        if (is_read) {
+        if (is_read && verbose) {
             printf("read a %ld x %ld matrix named %s. \n", mat_data.rows(), mat_data.cols(), var_name);
         }
         return is_read;
@@ -212,13 +212,13 @@ namespace matio {
     }
     
     template
-    bool readMatrix(const char *file_name, const char *var_name, Eigen::MatrixXd& mat_data);
+    bool readMatrix(const char *file_name, const char *var_name, Eigen::MatrixXd& mat_data, bool verbose);
    
     template
-    bool readMatrix(const char *file_name, const char *var_name, Eigen::MatrixXf& mat_data);
+    bool readMatrix(const char *file_name, const char *var_name, Eigen::MatrixXf& mat_data, bool verbose);
     
     template
-    bool readMatrix(const char *file_name, const char *var_name, Eigen::MatrixXi& mat_data);
+    bool readMatrix(const char *file_name, const char *var_name, Eigen::MatrixXi& mat_data, bool verbose);
     
     template
     bool writeMatrix(const char *file_name, const char *var_name, const Eigen::MatrixXd& data);

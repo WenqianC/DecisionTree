@@ -4,9 +4,10 @@
 
 #include "bt_dtr_tree.h"
 #include "bt_dtr_node.h"
-#include "BTDTRUtil.h"
+#include "bt_dtr_util.h"
+#include "dt_util.hpp"
 #include <iostream>
-#include "dt_random.h"
+#include "dt_random.hpp"
 
 
 
@@ -18,6 +19,16 @@ BTDTRTree::BTDTRTree()
 {
     root_ = NULL;
     leaf_node_num_ = 0;
+}
+
+BTDTRTree::BTDTRTree(const BTDTRTree & other)
+{
+    // shallow copy
+    root_ = other.root_;
+    tree_param_ = other.tree_param_;
+    leaf_node_num_ = other.leaf_node_num_;
+    
+    std::copy(other.leaf_nodes_.begin(), other.leaf_nodes_.end(), leaf_nodes_.begin());
 }
 
 bool BTDTRTree::buildTree(const vector<VectorXf> & features,
@@ -107,10 +118,10 @@ static bool bestSplitDimension(const vector<VectorXf> & features,
         
         double cur_loss = 0.0;
         if (is_use_balance) {
-            cur_loss += BTDTRUtil::inbalance_loss((int)cur_left_indices.size(), (int)cur_right_indices.size());
+            cur_loss += DTUtil::balanceLoss((int)cur_left_indices.size(), (int)cur_right_indices.size());
         } else {
-            cur_loss += BTDTRUtil::spatialVariance(labels, cur_left_indices);
-            cur_loss += BTDTRUtil::spatialVariance(labels, cur_right_indices);
+            cur_loss += DTUtil::spatialVariance<VectorXf>(labels, cur_left_indices);
+            cur_loss += DTUtil::spatialVariance<VectorXf>(labels, cur_right_indices);
         }
         
         if (cur_loss < loss) {
@@ -151,7 +162,7 @@ bool BTDTRTree::configureNode(const vector<VectorXf> & features,
     if (reach_leaf == false && depth > max_depth/2) {
         Eigen::VectorXf mean;
         Eigen::VectorXf std_dev;
-        BTDTRUtil::meanStddev<Eigen::VectorXf>(labels, indices, mean, std_dev);
+        DTUtil::meanStddev<Eigen::VectorXf>(labels, indices, mean, std_dev);
         // standard deviation in every dimension is smaller than the threshold
         reach_leaf = (std_dev.array() < min_split_stddev).all();
     }    
@@ -236,9 +247,9 @@ void BTDTRTree::setLeafNode(const vector<VectorXf> & features,
     assert(node);
     
     node->is_leaf_ = true;
-    BTDTRUtil::meanStddev<Eigen::VectorXf>(labels, indices, node->label_mean_, node->label_stddev_);
+    DTUtil::meanStddev<Eigen::VectorXf>(labels, indices, node->label_mean_, node->label_stddev_);
     node->sample_num_ = (int)indices.size();
-    node->feat_mean_ = BTDTRUtil::mean(features, indices);    
+    node->feat_mean_ = DTUtil::mean(features, indices);
     leaf_node_num_++;
     
     if (tree_param_.verbose_leaf_) {

@@ -26,6 +26,7 @@ public:
     BTDTRegressor(){feature_dim_ = 0; label_dim_ = 0;}
     ~BTDTRegressor(){}    
     
+    // average prediction from all trees
     bool predict(const Eigen::VectorXf & feature,
                  const int maxCheck,
                  Eigen::VectorXf & pred) const;

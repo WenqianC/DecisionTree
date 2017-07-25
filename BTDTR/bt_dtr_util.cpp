@@ -6,9 +6,9 @@
 //  Copyright (c) 2016 Nowhere Planet. All rights reserved.
 //
 
-#include "BTDTRUtil.h"
+#include "bt_dtr_util.h"
 
-
+/*
 template <class T>
 double BTDTRUtil::spatialVariance(const vector<T> & labels, const vector<unsigned int> & indices)
 {
@@ -178,6 +178,7 @@ template Eigen::VectorXf BTDTRUtil::mean(const vector<Eigen::VectorXf> & data, c
 template Eigen::VectorXf BTDTRUtil::mean(const vector<Eigen::VectorXf> & data);
 
 template void  BTDTRUtil::mean_median_error(const vector<Eigen::VectorXf> & errors, Eigen::VectorXf & mean, Eigen::VectorXf & median);
+ */
 
 
 

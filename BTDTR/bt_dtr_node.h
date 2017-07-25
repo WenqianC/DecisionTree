@@ -13,30 +13,19 @@
 #include <stdio.h>
 #include <vector>
 #include <Eigen/Dense>
-#include "BTDTRUtil.h"
+#include "bt_dtr_util.h"
 
 using std::vector;
 using Eigen::VectorXf;
-
-namespace dt {
-    
-    
-} // name space dt
-
-struct BTDTRSplitParameter
-{
-public:
-    int split_dim_;         // dimension in the feature
-    float split_threshold_; // a threshold in feature space
-    
-    // auxilary data
-    float split_loss_;    // loss of split, e.g., spatial variance
-};
 
 
 // tree node structure in a tree
 class BTDTRNode
 {
+    typedef BTDTRNode  Node;
+    typedef BTDTRNode* NodePtr;
+    typedef BTDTRSplitParameter SplitParameter;
+    
 public:
     BTDTRNode *left_child_;    // left child in a tree
     BTDTRNode *right_child_;   // right child in a tree
@@ -44,21 +33,17 @@ public:
     bool is_leaf_;             // indicator if this is a leaf node
     
     // non-leaf node parameter
-    BTDTRSplitParameter split_param_;  // intermedia node data structure
+    SplitParameter split_param_;  // intermedia node data structure
     
     // leaf node parameter
     VectorXf label_mean_;      // label, e.g., 3D location
     VectorXf label_stddev_;    // standard deviation of labels
     VectorXf feat_mean_;       // mean value of local descriptors, e.g., WHT features
-    int index_;               // node index, for save/store tree
+    int index_;                // node index, for save/store tree
     
     // auxiliary data
     int sample_num_;            // num of training examples
     double sample_percentage_;  // ratio of training examples from parent node
-    
-    
-    typedef BTDTRNode* NodePtr;
-    typedef BTDTRSplitParameter SplitParameter;
     
 public:
     BTDTRNode(int depth)

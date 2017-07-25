@@ -7,8 +7,9 @@
 //
 
 #include "bt_dt_regressor_builder.h"
-#include "dt_random.h"
+#include "dt_random.hpp"
 #include <iostream>
+#include "dt_util.hpp"
 
 using std::cout;
 using std::endl;
@@ -35,7 +36,7 @@ bool BTDTRegressorBuilder::buildModel(BTDTRegressor & model,
         // bagging
         vector<unsigned int> training_indices;
         vector<unsigned int> validation_indices;
-        DTRandom::outof_bag_sampling((unsigned int) features.size(), training_indices, validation_indices);
+        DTRandom::outofBagSampling<unsigned int>((unsigned int) features.size(), training_indices, validation_indices);
         
         TreeType * tree = new TreeType();
         assert(tree);
@@ -56,7 +57,7 @@ bool BTDTRegressorBuilder::buildModel(BTDTRegressor & model,
         
         Eigen::VectorXf cv_mean_error;
         Eigen::VectorXf cv_median_error;
-        BTDTRUtil::mean_median_error<Eigen::VectorXf>(cv_errors, cv_mean_error, cv_median_error);
+        DTUtil::meanMedianError<Eigen::VectorXf>(cv_errors, cv_mean_error, cv_median_error);
         cout<<"cross validation mean error: "<<cv_mean_error.transpose()<<"\n median error: "<<cv_median_error.transpose()<<endl;
         if (model_file_name != NULL) {
             model.saveModel(model_file_name);
@@ -129,7 +130,7 @@ bool BTDTRegressorBuilder::buildModel(BTDTRegressor & model,
         
         Eigen::VectorXf cv_mean_error;
         Eigen::VectorXf cv_median_error;
-        BTDTRUtil::mean_median_error<Eigen::VectorXf>(cv_errors, cv_mean_error, cv_median_error);
+        DTUtil::meanMedianError<Eigen::VectorXf>(cv_errors, cv_mean_error, cv_median_error);
         cout<<"cross validation mean error: "<<cv_mean_error.transpose()<<"\n median error: "<<cv_median_error.transpose()<< "from 10 images.\n";
     }
     

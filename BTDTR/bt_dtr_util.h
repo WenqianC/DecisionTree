@@ -132,8 +132,18 @@ public:
     }
 };
 
+struct BTDTRSplitParameter
+{
+public:
+    int split_dim_;         // dimension in the feature
+    float split_threshold_; // a threshold in feature space
+    
+    // auxilary data
+    float split_loss_;    // loss of split, e.g., spatial variance
+};
 
-
+/*
+// move to dt_util.hpp
 class BTDTRUtil
 {
 public:
@@ -162,6 +172,7 @@ public:
     static double inbalance_loss(const int leftNodeSize, const int rightNodeSize);
     
 };
+ */
 
 
 

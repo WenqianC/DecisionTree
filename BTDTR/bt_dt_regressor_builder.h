@@ -33,6 +33,7 @@ public:
                     const int max_num_frames,
                     const int maxCheck,
                     const char * model_file_name = NULL) const;
+    
     //features: a group of features, each group is from a single image
     //labels  : corresponding label
     //maxCheck: leaf number in backtracking

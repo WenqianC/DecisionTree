@@ -13,7 +13,7 @@
 #include <vector>
 #include <Eigen/Dense>
 #include <algorithm>
-#include "BTDTRUtil.h"
+#include "bt_dtr_util.h"
 
 #include "flann/util/heap.h"
 #include "flann/util/result_set.h"
@@ -35,17 +35,17 @@ class BTDTRTree
     typedef Distance::ElementType ElementType;
     
     typedef BTDTRNode* NodePtr;
+    typedef BTDTRTreeParameter TreeParameter;
     typedef BranchStruct<NodePtr, DistanceType > BranchSt;
     typedef BranchSt* Branch;
 
     
-    BTDTRNode * root_;
-    BTDTRTreeParameter tree_param_;
+    NodePtr root_;
+    TreeParameter tree_param_;
     
     Distance distance_;   // the distance functor
     int leaf_node_num_;   // total leaf node number
-    vector<NodePtr> leaf_nodes_;   // leaf node for back tracking
-    
+    vector<NodePtr> leaf_nodes_;   // leaf node for back tracking    
     
     vector<int> dims_;             // candidate split dimension, only used in training
     
@@ -53,15 +53,7 @@ public:
     BTDTRTree();
     ~BTDTRTree(){;}
     
-    BTDTRTree(const BTDTRTree & other)
-    {
-        // shallow copy
-        root_ = other.root_;
-        tree_param_ = other.tree_param_;
-        leaf_node_num_ = other.leaf_node_num_;
-        
-        std::copy(other.leaf_nodes_.begin(), other.leaf_nodes_.end(), leaf_nodes_.begin());
-    }
+    BTDTRTree(const BTDTRTree & other);
     
     // features:
     // labels: regression label
@@ -110,7 +102,6 @@ private:
     void searchLevel(flann::ResultSet<DistanceType>  & result_set, const ElementType* vec, NodePtr node,
                      const DistanceType min_dist, int & checkCount, const int maxCheck, const float epsError,
                      flann::Heap<BranchSt>* heap, flann::DynamicBitset& checked) const;
-    
     
 };
 

@@ -8,8 +8,8 @@
 
 #include <iostream>
 #include "btrf_forest_builder.h"
-#include "dt_random.h"
-#include "BTDTRUtil.h"
+#include "dt_random.hpp"
+#include "bt_dtr_util.h"
 #include "cvx_io.hpp"
 
 using std::cout;
@@ -41,7 +41,7 @@ bool BTRFForestBuilder::buildModel(BTRFForest & model,
         // bagging, use about 2/3 as training set, the test as validation set
         vector<unsigned int> training_indices;
         vector<unsigned int> validation_indices;
-        DTRandom::outof_bag_sampling((unsigned int) features.size(), training_indices, validation_indices);
+        DTRandom::outofBagSampling<unsigned int>((unsigned int) features.size(), training_indices, validation_indices);
         
         // Step 1: train a decision tree
         TreeType * tree = new TreeType();
