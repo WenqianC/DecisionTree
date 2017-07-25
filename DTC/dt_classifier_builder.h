@@ -11,7 +11,7 @@
 
 #include <stdio.h>
 #include <Eigen/Dense>
-#include "DTClassifier.h"
+#include "dt_classifier.h"
 
 using Eigen::VectorXf;
 

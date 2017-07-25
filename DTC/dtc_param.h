@@ -151,15 +151,15 @@ public:
 class DTCSplitParameter
 {
 public:
-    int split_dim_;
-    double split_threshold_;
-    double split_loss_;        // gini inpurity, cross entropy
+    int dim_;
+    double threshold_;
+    double loss_;        // gini inpurity, cross entropy
     
     DTCSplitParameter()
     {
-        split_dim_ = 0;
-        split_threshold_ = 0.0;
-        split_loss_ = 1.0;
+        dim_ = 0;
+        threshold_ = 0.0;
+        loss_ = 1.0;
     }
 };
 

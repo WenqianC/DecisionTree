@@ -6,7 +6,7 @@
 //  Copyright (c) 2016 Nowhere Planet. All rights reserved.
 //
 
-#include "DTClassifier.h"
+#include "dt_classifier.h"
 
 
 bool DTClassifer::predict(const Eigen::VectorXf & feature,

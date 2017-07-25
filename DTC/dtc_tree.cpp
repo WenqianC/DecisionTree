@@ -25,39 +25,38 @@ bool DTCTree::buildTree(const vector<VectorXf> & features,
     tree_param_ = param;
     root_ = new Node(0);
     
-    return this->configureNode(features, labels, indices, root_);
+    return this->buildTreeImpl(features, labels, indices, root_);
 }
 
 
 
-bool DTCTree::configureNode(const vector<VectorXf> & features,
+bool DTCTree::buildTreeImpl(const vector<VectorXf> & features,
                             const vector<int> & labels,
                             const vector<int> & indices,
                             NodePtr node)
 {
     assert(node);
-    const int min_lead_node = tree_param_.min_leaf_node_num_;
+    const int min_leaf_node = tree_param_.min_leaf_node_num_;
     const int max_depth     = tree_param_.max_depth_;
     
     const int depth = node->depth_;
     const int dim = (int)features[0].size();
     
     // leaf node
-    if (indices.size() < min_lead_node || depth > max_depth ||
+    if (indices.size() < min_leaf_node || depth > max_depth ||
         ( depth > max_depth/2 && DTUtil::isSameLabel(labels, indices))) {
         this->setLeafNode(features, labels, indices, node);
         return true;
     }
-     
     
     // randomly select a subset of dimensions
-    vector<unsigned int> dims;
-    for (unsigned int i = 0; i<dim; i++) {
+    vector<int> dims;
+    for (int i = 0; i<dim; i++) {
         dims.push_back(i);
     }
     int sqrt_feat_dim = sqrt((double)dim);
     std::random_shuffle(dims.begin(), dims.end());
-    vector<unsigned int> random_dim(dims.begin(), dims.begin() + sqrt_feat_dim);
+    vector<int> random_dim(dims.begin(), dims.begin() + sqrt_feat_dim);
     assert(random_dim.size() > 0 && random_dim.size() <= dims.size());
     
     // split the data to left and right node
@@ -70,15 +69,14 @@ bool DTCTree::configureNode(const vector<VectorXf> & features,
     // optimize random feature
     for (int i = 0; i<random_dim.size(); i++) {
         SplitParameter cur_split_param;
-        cur_split_param.split_dim_ = random_dim[i];
+        cur_split_param.dim_ = random_dim[i];
         
         vector<int> cur_left_indices;
         vector<int> cur_right_indices;
-        
         bool cur_is_split = bestSplitParameter(features, labels, indices, cur_split_param, cur_left_indices, cur_right_indices);
-        if (cur_is_split && cur_split_param.split_loss_ < loss) {
+        if (cur_is_split && cur_split_param.loss_ < loss) {
             is_split = true;
-            loss = cur_split_param.split_loss_;
+            loss = cur_split_param.loss_;
             split_param = cur_split_param;
             left_indices = cur_left_indices;
             right_indices = cur_right_indices;
@@ -89,30 +87,28 @@ bool DTCTree::configureNode(const vector<VectorXf> & features,
     if (is_split) {
         assert(left_indices.size() + right_indices.size() == indices.size());
         if (tree_param_.verbose_) {
-            printf("percentage is %f\n", 1.0 * left_indices.size()/indices.size());
-            printf("loss is %f \n", split_param.split_loss_);
+            printf("left node percentage: %f\n", 1.0 * left_indices.size()/indices.size());
+            printf("cross entropy loss: %f\n", split_param.loss_);
         }
         node->split_param_ = split_param;
         node->is_leaf_ = false;
         node->sample_num_ = (int)indices.size();
         if (left_indices.size() > 0) {
             Node *left_node = new Node(depth + 1);
-            this->configureNode(features, labels, left_indices, left_node);
+            this->buildTreeImpl(features, labels, left_indices, left_node);
             left_node->sample_percentage_ = 1.0 * left_indices.size()/indices.size();
             node->left_child_ = left_node;
         }
         if (right_indices.size() > 0) {
             Node * right_node = new Node(depth + 1);
-            this->configureNode(features, labels, right_indices, right_node);
+            this->buildTreeImpl(features, labels, right_indices, right_node);
             right_node->sample_percentage_ = 1.0 * right_indices.size()/indices.size();
             node->right_child_ = right_node;
         }
-        
     }
     else
     {
-        this->setLeafNode(features, labels, indices, node);
-        
+        this->setLeafNode(features, labels, indices, node);        
     }    
     return true;
 }
@@ -129,15 +125,15 @@ bool DTCTree::setLeafNode(const vector<Eigen::VectorXf> & features,
     Eigen::VectorXf prob = Eigen::VectorXf::Zero(category_num);
     for (int i = 0; i<indices.size(); i++) {
         assert(labels[indices[i]] >= 0 && labels[indices[i]] < category_num);
-        prob[labels[indices[i]]] += 1.0;
+        prob[labels[indices[i]]] += 1.0f;
     }
     prob /= indices.size();
     node->prob_ = prob;
+    node->sample_num_ = (int)indices.size();
     if (tree_param_.verbose_leaf_) {
         printf("leaf node depth size %d    %lu\n", node->depth_, indices.size());
         cout<<"probability: \n"<<node->prob_.transpose()<<endl<<endl;;
-    }
-    node->sample_num_ = (int)indices.size();
+    }    
     return true;
 }
 
@@ -149,7 +145,7 @@ bool DTCTree::bestSplitParameter(const vector<VectorXf> & features,
                                  vector<int> & right_indices)
 {
     // randomly select number in a range
-    const int dim = split_param.split_dim_;
+    const int dim = split_param.dim_;
     double min_v = std::numeric_limits<double>::max();
     double max_v = std::numeric_limits<double>::min();
     const int rand_num = tree_param_.split_candidate_num_;
@@ -188,11 +184,11 @@ bool DTCTree::bestSplitParameter(const vector<VectorXf> & features,
             }
         }
         
-        if (cur_left_indices.size() < min_split_num || cur_right_indices.size() < min_split_num) {
+        if (cur_left_indices.size() < min_split_num ||
+            cur_right_indices.size() < min_split_num) {
             continue;
         }
         
-        // at least one example
         // probability of each category (label) in left node
         Eigen::VectorXd left_prob = Eigen::VectorXd::Zero(category_num);
         for (int j = 0; j<cur_left_indices.size(); j++) {
@@ -218,8 +214,8 @@ bool DTCTree::bestSplitParameter(const vector<VectorXf> & features,
             is_split = true;
             left_indices = cur_left_indices;
             right_indices = cur_right_indices;
-            split_param.split_threshold_ = threshold;
-            split_param.split_loss_ = entropy;
+            split_param.threshold_ = threshold;
+            split_param.loss_ = entropy;
         }
     }
     
@@ -276,8 +272,8 @@ bool DTCTree::predict(const NodePtr node,
         prob = node->prob_;
         return true;
     }
-    double feat = feature[node->split_param_.split_dim_];
-    if (feat < node->split_param_.split_threshold_ && node->left_child_) {
+    double feat = feature[node->split_param_.dim_];
+    if (feat < node->split_param_.threshold_ && node->left_child_) {
         return this->predict(node->left_child_, feature, prob);
     }
     else if (node->right_child_)
@@ -306,8 +302,8 @@ void DTCTree::computeProximity(const NodePtr node,
         return;
     }
     
-    int dim = node->split_param_.split_dim_;
-    double threshold = node->split_param_.split_threshold_;
+    int dim = node->split_param_.dim_;
+    double threshold = node->split_param_.threshold_;
     vector<int> left_indices;
     vector<int> right_indices;
     for (int i = 0; i<indices.size(); i++) {
@@ -339,7 +335,7 @@ void DTCTree::writeNode(FILE *pf, NodePtr node)
     // write current node
     SplitParameter param = node->split_param_;
     fprintf(pf, "%2d\t %d\t %6d\t\t %lf\t %.2f\t\t %d\n",
-            node->depth_, (int)node->is_leaf_,  param.split_dim_, param.split_threshold_, node->sample_percentage_, node->sample_num_);
+            node->depth_, (int)node->is_leaf_,  param.dim_, param.threshold_, node->sample_percentage_, node->sample_num_);
     
     if (node->is_leaf_) {
         fprintf(pf, "%d\n", (int)node->prob_.size());
@@ -391,8 +387,8 @@ void DTCTree::readNode(FILE *pf, NodePtr & node)
     int is_leaf = 0;
     int split_dim = 0;
     double split_threshold = 0.0;
-    int sample_num = 0;
     double sample_percentage = 0.0;
+    int sample_num = 0;
     
     int ret_num = sscanf(lineBuf, "%d %d %d %lf %lf %d",
                          &depth, &is_leaf, &split_dim, &split_threshold, &sample_percentage, &sample_num);
@@ -404,8 +400,8 @@ void DTCTree::readNode(FILE *pf, NodePtr & node)
     node->sample_percentage_ = sample_percentage;
     
     SplitParameter param;
-    param.split_dim_ = split_dim;
-    param.split_threshold_ = split_threshold;
+    param.dim_ = split_dim;
+    param.threshold_ = split_threshold;
     node->split_param_ = param;
     
     if (is_leaf) {

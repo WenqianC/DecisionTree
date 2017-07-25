@@ -22,8 +22,8 @@ class DTClassifer
     
     vector<DTCTree* > trees_;
     DTCTreeParameter tree_param_;
-public:
     
+public:
     bool predict(const Eigen::VectorXf & feature,
                  Eigen::VectorXf & prob) const;
     

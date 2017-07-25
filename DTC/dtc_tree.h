@@ -98,7 +98,7 @@ public:
     
     
 private:
-    bool configureNode(const vector<VectorXf> & features,
+    bool buildTreeImpl(const vector<VectorXf> & features,
                        const vector<int> & labels,
                        const vector<int> & indices,
                        NodePtr node);
@@ -114,7 +114,6 @@ private:
                             DTCSplitParameter & split_param,
                             vector<int> & left_indices,
                             vector<int> & right_indices);
-
     
     bool predict(const NodePtr node,
                  const Eigen::VectorXf & feature,

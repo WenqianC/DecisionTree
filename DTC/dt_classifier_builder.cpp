@@ -6,7 +6,7 @@
 //  Copyright (c) 2016 Nowhere Planet. All rights reserved.
 //
 
-#include "DTClassifierBuilder.h"
+#include "dt_classifer_builder.h"
 #include "dt_random.hpp"
 #include <iostream>
 #include "dt_util.hpp"
@@ -87,8 +87,7 @@ bool DTClassifierBuilder::buildModel(DTClassifer & model,
         }
         if (is_proximity) {
             vector<int> indices = DTUtil::range<int>(0, (int)features.size(), 1);
-            tree->computeProximity(features, indices, data_proximity);
-            
+            tree->computeProximity(features, indices, data_proximity);            
             
             // void computeProximityMatrix(const int k);
             data_proximity.computeProximityMatrix(5);            
