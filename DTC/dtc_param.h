@@ -163,32 +163,6 @@ public:
     }
 };
 
-/*
-class DTCUtil
-{
-public:
-    // generate N random value in [min_v, max_v]
-    static vector<double>
-    generateRandomNumber(const double min_v, const double max_v, int num);
-    
-    // -p log (p)
-    static double
-    crossEntropy(const VectorXd & prob);
-    
-    static bool
-    isSameLabel(const vector<unsigned int> & labels, const vector<unsigned int> & indices);
-    
-    // confusion matrix of predictions
-    static Eigen::MatrixXd
-    confusionMatrix(const vector<Eigen::VectorXd> & probs, const vector<unsigned int> & labels);
-    
-    // confusion matrix of predictions
-    // dim: category number
-    static Eigen::MatrixXd
-    confusionMatrix(const vector<unsigned int> & preds, const vector<unsigned int> & labels,
-                    const int category_num, bool normalize = false);
-};
- */
 
 
 

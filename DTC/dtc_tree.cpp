@@ -6,7 +6,7 @@
 //  Copyright (c) 2016 Nowhere Planet. All rights reserved.
 //
 
-#include "DTCTree.h"
+#include "dtc_tree.h"
 #include <algorithm>
 #include <iostream>
 #include "dt_util.hpp"
@@ -28,90 +28,6 @@ bool DTCTree::buildTree(const vector<VectorXf> & features,
     return this->configureNode(features, labels, indices, root_);
 }
 
-bool DTCTree::bestSplitParameter(const vector<VectorXf> & features,
-                        const vector<int> & labels,
-                        const vector<int> & indices,
-                        DTCSplitParameter & split_param,
-                        vector<int> & left_indices,
-                        vector<int> & right_indices)
-{
-    // randomly select number in a range
-    const int dim = split_param.split_dim_;
-    double min_v = std::numeric_limits<double>::max();
-    double max_v = std::numeric_limits<double>::min();
-    const int rand_num = tree_param_.split_candidate_num_;
-    for (int i = 0; i<indices.size(); i++) {
-        int index = indices[i];
-        double v = features[index][dim];
-        if (v > max_v) {
-            max_v = v;
-        }
-        if (v < min_v) {
-            min_v = v;
-        }
-    }
-    if (!(min_v < max_v)) {
-        return false;
-    }
-    vector<double> rnd_split_values = rnd_generator_.getRandomNumbers(min_v, max_v, rand_num);
-    
-    bool is_split = false;
-    double loss = std::numeric_limits<double>::max();
-    const int min_split_num = tree_param_.min_split_num_;
-    const int category_num  = tree_param_.category_num_;
-    for (int i = 0; i<rnd_split_values.size(); i++) {
-        double threshold = rnd_split_values[i];
-        vector<int> cur_left_indices;
-        vector<int> cur_right_indices;
-        // split data by comparing with the threshold
-        for (int j = 0; j<indices.size(); j++) {
-            int index = indices[j];
-            double v = features[index][dim];
-            if (v < threshold) {
-                cur_left_indices.push_back(index);
-            }
-            else {
-                cur_right_indices.push_back(index);
-            }
-        }
-        
-        if (cur_left_indices.size() < min_split_num || cur_right_indices.size() < min_split_num) {
-            continue;
-        }
-        
-        // at least one example
-        // probability of each category (label) in left node
-        Eigen::VectorXd left_prob = Eigen::VectorXd::Ones(category_num);
-        for (int j = 0; j<cur_left_indices.size(); j++) {
-            int label = labels[cur_left_indices[j]];
-            left_prob[label] += 1.0;
-        }
-        left_prob /= cur_left_indices.size() + category_num;
-        
-        Eigen::VectorXd right_prob = Eigen::VectorXd::Ones(category_num);
-        for (int j = 0; j<cur_right_indices.size(); j++) {
-            int label = labels[cur_right_indices[j]];
-            right_prob[label] += 1.0;
-        }
-        right_prob /= cur_right_indices.size() + category_num;
-        
-        double left_entropy  = DTUtil::crossEntropy(left_prob);
-        double right_entropy = DTUtil::crossEntropy(right_prob);
-        double left_ratio = 1.0 * cur_left_indices.size()/indices.size();
-        double entropy = left_ratio * left_entropy + (1.0 - left_ratio) * right_entropy;        
-        
-        if (entropy < loss) {
-            loss = entropy;
-            is_split = true;
-            left_indices = cur_left_indices;
-            right_indices = cur_right_indices;
-            split_param.split_threshold_ = threshold;
-            split_param.split_loss_ = entropy;
-        }        
-    }
-    
-    return is_split;
-}
 
 
 bool DTCTree::configureNode(const vector<VectorXf> & features,
@@ -224,6 +140,92 @@ bool DTCTree::setLeafNode(const vector<Eigen::VectorXf> & features,
     node->sample_num_ = (int)indices.size();
     return true;
 }
+
+bool DTCTree::bestSplitParameter(const vector<VectorXf> & features,
+                                 const vector<int> & labels,
+                                 const vector<int> & indices,
+                                 DTCSplitParameter & split_param,
+                                 vector<int> & left_indices,
+                                 vector<int> & right_indices)
+{
+    // randomly select number in a range
+    const int dim = split_param.split_dim_;
+    double min_v = std::numeric_limits<double>::max();
+    double max_v = std::numeric_limits<double>::min();
+    const int rand_num = tree_param_.split_candidate_num_;
+    for (int i = 0; i<indices.size(); i++) {
+        int index = indices[i];
+        double v = features[index][dim];
+        if (v > max_v) {
+            max_v = v;
+        }
+        if (v < min_v) {
+            min_v = v;
+        }
+    }
+    if (!(min_v < max_v)) {
+        return false;
+    }
+    vector<double> rnd_split_values = rnd_generator_.getRandomNumbers(min_v, max_v, rand_num);
+    
+    bool is_split = false;
+    double loss = std::numeric_limits<double>::max();
+    const int min_split_num = tree_param_.min_split_num_;
+    const int category_num  = tree_param_.category_num_;
+    for (int i = 0; i<rnd_split_values.size(); i++) {
+        double threshold = rnd_split_values[i];
+        vector<int> cur_left_indices;
+        vector<int> cur_right_indices;
+        // split data by comparing with the threshold
+        for (int j = 0; j<indices.size(); j++) {
+            int index = indices[j];
+            double v = features[index][dim];
+            if (v < threshold) {
+                cur_left_indices.push_back(index);
+            }
+            else {
+                cur_right_indices.push_back(index);
+            }
+        }
+        
+        if (cur_left_indices.size() < min_split_num || cur_right_indices.size() < min_split_num) {
+            continue;
+        }
+        
+        // at least one example
+        // probability of each category (label) in left node
+        Eigen::VectorXd left_prob = Eigen::VectorXd::Zero(category_num);
+        for (int j = 0; j<cur_left_indices.size(); j++) {
+            int label = labels[cur_left_indices[j]];
+            left_prob[label] += 1.0;
+        }
+        left_prob /= cur_left_indices.size();
+        
+        Eigen::VectorXd right_prob = Eigen::VectorXd::Zero(category_num);
+        for (int j = 0; j<cur_right_indices.size(); j++) {
+            int label = labels[cur_right_indices[j]];
+            right_prob[label] += 1.0;
+        }
+        right_prob /= cur_right_indices.size();
+        
+        double left_entropy  = DTUtil::crossEntropy(left_prob);
+        double right_entropy = DTUtil::crossEntropy(right_prob);
+        double left_ratio = 1.0 * cur_left_indices.size()/indices.size();
+        double entropy = left_ratio * left_entropy + (1.0 - left_ratio) * right_entropy;
+        
+        if (entropy < loss) {
+            loss = entropy;
+            is_split = true;
+            left_indices = cur_left_indices;
+            right_indices = cur_right_indices;
+            split_param.split_threshold_ = threshold;
+            split_param.split_loss_ = entropy;
+        }
+    }
+    
+    return is_split;
+}
+
 
 bool DTCTree::predict(const Eigen::VectorXf & feature,
                       Eigen::VectorXf & prob) const

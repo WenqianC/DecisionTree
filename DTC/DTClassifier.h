@@ -11,7 +11,7 @@
 
 #include <stdio.h>
 #include <vector>
-#include "DTCTree.h"
+#include "dtc_tree.h"
 
 using std::vector;
 

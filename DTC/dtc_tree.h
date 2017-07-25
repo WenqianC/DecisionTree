@@ -12,7 +12,7 @@
 #include <stdio.h>
 #include <vector>
 #include <Eigen/Dense>
-#include "DTCUtil.h"
+#include "dtc_param.h"
 #include "dt_random.hpp"
 #include "dt_proximity.hpp"
 
@@ -130,7 +130,6 @@ private:
     
     static void writeNode(FILE *pf, const NodePtr node);
     static void readNode(FILE *pf, NodePtr & node);
-    
     
 };
 
