@@ -14,7 +14,6 @@
 #include <Eigen/Dense>
 #include "dtc_param.h"
 #include "dt_random.hpp"
-#include "dt_proximity.hpp"
 
 
 using std::vector;
@@ -91,10 +90,6 @@ public:
     const TreeParameter & getTreeParameter(void) const;
     void setTreeParameter(const TreeParameter & param);
     
-    // computer proximity matrix which measures the similarity between examples
-    void computeProximity(const vector<Eigen::VectorXf> & features,
-                          const vector<int> & indices,
-                          DTProximity & proximity) const;
     
     
 private:
@@ -117,12 +112,8 @@ private:
     
     bool predict(const NodePtr node,
                  const Eigen::VectorXf & feature,
-                 Eigen::VectorXf & prob) const;
+                 Eigen::VectorXf & prob) const;   
     
-    void computeProximity(const NodePtr node,
-                          const vector<Eigen::VectorXf> & features,
-                          const vector<int> & indices,
-                          DTProximity & proximity) const;
     
     bool writeTree(const char *fileName) const;
     bool readTree(const char *fileName);

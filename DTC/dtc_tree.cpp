@@ -244,13 +244,6 @@ bool DTCTree::predict(const Eigen::VectorXf & feature,
     return true;    
 }
 
-void DTCTree::computeProximity(const vector<Eigen::VectorXf> & features,
-                               const vector<int> & indices,
-                               DTProximity & proximity) const
-{
-    assert(root_);
-    this->computeProximity(root_, features, indices, proximity);    
-}
 
 const DTCTree::TreeParameter & DTCTree::getTreeParameter(void) const
 {
@@ -284,44 +277,6 @@ bool DTCTree::predict(const NodePtr node,
     {
         printf("Warning: prediction can not find proper split value\n");
         return false;
-    }
-}
-
-void DTCTree::computeProximity(const NodePtr node,
-                               const vector<Eigen::VectorXf> & features,
-                               const vector<int> & indices,
-                               DTProximity & proximity) const
-{
-    assert(node);
-    if (node->is_leaf_) {
-        for (int i = 0; i<indices.size(); i++) {
-            for (int j = i+1; j<indices.size(); j++) {
-                proximity.addExample(indices[i], indices[j]);
-            }
-        }
-        return;
-    }
-    
-    int dim = node->split_param_.dim_;
-    double threshold = node->split_param_.threshold_;
-    vector<int> left_indices;
-    vector<int> right_indices;
-    for (int i = 0; i<indices.size(); i++) {
-        double feat = features[indices[i]][dim];
-        if (feat < threshold) {
-            left_indices.push_back(indices[i]);
-        }
-        else {
-            right_indices.push_back(indices[i]);
-        }
-    }
-    assert(left_indices.size() + right_indices.size() == indices.size());
-    
-    if (node->left_child_ && left_indices.size() > 0) {
-        this->computeProximity(node->left_child_, features, left_indices, proximity);
-    }
-    if (node->right_child_ && right_indices.size() > 0) {
-        this->computeProximity(node->right_child_, features, right_indices, proximity);
     }
 }
 

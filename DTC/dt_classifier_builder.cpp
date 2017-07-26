@@ -6,7 +6,7 @@
 //  Copyright (c) 2016 Nowhere Planet. All rights reserved.
 //
 
-#include "dt_classifer_builder.h"
+#include "dt_classifier_builder.h"
 #include "dt_random.hpp"
 #include <iostream>
 #include "dt_util.hpp"
@@ -36,10 +36,8 @@ bool DTClassifierBuilder::buildModel(DTClassifer & model,
     
     const int tree_num = tree_param_.tree_num_;
     const int category_num = tree_param_.category_num_;
-    const bool is_proximity = tree_param_.proximity_;
     
     const int N = (int)features.size();
-    DTProximity data_proximity(N);
     
     for (int n = 0; n<tree_num; n++) {
         // bagging
@@ -85,6 +83,7 @@ bool DTClassifierBuilder::buildModel(DTClassifer & model,
             cout<<"Validation confusion matrix: \n"<<valid_conf<<endl;
             cout<<"Validation accuracy: \n"<<accuracy.transpose()<<endl;
         }
+        /*
         if (is_proximity) {
             vector<int> indices = DTUtil::range<int>(0, (int)features.size(), 1);
             tree->computeProximity(features, indices, data_proximity);            
@@ -95,7 +94,7 @@ bool DTClassifierBuilder::buildModel(DTClassifer & model,
             matio::writeMatrix((string("tree_") + std::to_string(n) + string("_prox.mat")).c_str(),
                                "proximity", prox_mat);
         }
-        
+         */        
         
     }
     return true;
