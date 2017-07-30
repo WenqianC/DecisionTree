@@ -60,14 +60,9 @@ void generatePTZSample(const char* feature_file_name,
                        vector<PTZSample>& samples);
 
 void readSequenceData(const char * sequence_file_name,
-                        const char * sequence_base_directory,
+                      const char * sequence_base_directory,
                         vector<string> & feature_files,
                         vector<Eigen::Vector3f> & ptzs);
-
-    
-
-    
-    
     
 
     

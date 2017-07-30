@@ -107,6 +107,21 @@ bool ParameterParser::getIntValue(const string & name, int & value) const
     return false;
 }
 
+bool ParameterParser::getBoolValue(const string & name, bool & value) const
+{
+    auto ite = int_values_.find(name);
+    if (ite != int_values_.end()) {
+        vector<int> values = ite->second;
+        assert(values.size() == 1);
+        value = (values[0] != 0);
+        return true;
+    }
+    else {
+        printf("Error: can not find parameter %s\n", name.c_str());
+        assert(0);
+    }
+}
+
 bool ParameterParser::getFloatValue(const string & name, double & value) const
 {
     auto ite = float_values_.find(name);

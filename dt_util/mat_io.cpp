@@ -231,6 +231,11 @@ namespace matio {
                              const std::vector<std::string>& var_name,
                              const std::vector<Eigen::MatrixXd>& data);
     
+    template
+    bool writeMultipleMatrix(const char *file_name,
+                             const std::vector<std::string>& var_name,
+                             const std::vector<Eigen::MatrixXf>& data);
+    
     
     
     

@@ -30,7 +30,7 @@ bool  PTZTreeParameter::readFromFile(FILE *pf)
 {
     assert(pf);
     
-    const int param_num = 1;
+    const int param_num = 3;
     unordered_map<std::string, int> imap;
     for(int i = 0; i<param_num; i++)
     {
@@ -42,9 +42,11 @@ bool  PTZTreeParameter::readFromFile(FILE *pf)
         }
         imap[string(s)] = val;
     }
-    assert(imap.size() == 1);
+    assert(imap.size() == 3);
     
     sampled_frame_num_ = imap[string("sampled_frame_num")];
+    pp_x_ = imap[string("pp_x")];
+    pp_y_ = imap[string("pp_y")];
     base_tree_param_.readFromFile(pf);
     return true;
 }
@@ -65,7 +67,9 @@ bool  PTZTreeParameter::readFromFile(const char *file_name)
 bool PTZTreeParameter::writeToFile(FILE *pf) const
 {
     assert(pf);
-    fprintf(pf, "sampled_frame_num %d\n\n", sampled_frame_num_);
+    fprintf(pf, "sampled_frame_num %d\n", sampled_frame_num_);
+    fprintf(pf, "pp_x %f\n", pp_x_);
+    fprintf(pf, "pp_y %f\n\n", pp_y_);
     base_tree_param_.writeToFile(pf);
     return true;
 }
@@ -104,6 +108,7 @@ static bool readSIFTLocationAndDescriptors(const char *mat_file,
     //printf("load %lu features from %s\n", features.size(), mat_file);
     return true;
 }
+    
 void generatePTZSample(const char* feature_file_name,
                        const Eigen::Vector2f& pp,
                        const Eigen::Vector3f& ptz,
@@ -145,7 +150,7 @@ void readSequenceData(const char * sequence_file_name,
     for (int i = 0; i<3; i++) {
         char buf[1024] = {NULL};
         fgets(buf, sizeof(buf), pf);
-        printf("%s\n", buf);
+        printf("%s", buf);
     }
     while (1) {
         char buf[1024] = {NULL};

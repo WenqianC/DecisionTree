@@ -140,6 +140,12 @@ public:
     
     // auxilary data
     float split_loss_;    // loss of split, e.g., spatial variance
+    BTDTRSplitParameter()
+    {
+        split_dim_ = 0;
+        split_threshold_ = 0;
+        split_loss_ = INT_MAX;
+    }
 };
 
 /*

@@ -43,6 +43,7 @@ public:
     
     // single value
     bool getIntValue(const string & name, int & value) const;
+    bool getBoolValue(const string & name, bool & value) const;
     bool getFloatValue(const string & name, double & value) const;
     
     //

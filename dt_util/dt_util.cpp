@@ -277,6 +277,32 @@ void DTUtil::meanMedianError(const vector<T> & errors,
     }
 }
 
+template<class vectorT>
+void DTUtil::quartileError(const vector<vectorT> & errors, vectorT& q1, vectorT& q2, vectorT& q3)
+{
+    assert(errors.size() > 0);
+    const int dim = (int)errors[0].size();
+    
+    q1 = vectorT::Zero(dim);
+    q2 = vectorT::Zero(dim);
+    q3 = vectorT::Zero(dim);
+    
+    vector<vector<double> > each_dim_data(dim);
+    for (int i = 0; i<errors.size(); i++) {
+        vectorT err = errors[i].cwiseAbs();
+        for (int j = 0; j<err.size(); j++) {
+            each_dim_data[j].push_back(err[j]);
+        }
+    }
+    
+    for (int i = 0; i<each_dim_data.size(); i++) {
+        std::sort(each_dim_data[i].begin(), each_dim_data[i].end());
+        q1[i] = each_dim_data[i][each_dim_data[i].size()/4];
+        q2[i] = each_dim_data[i][each_dim_data[i].size()/2];
+        q3[i] = each_dim_data[i][each_dim_data[i].size()/4*3];
+    }
+}
+
 template <class MatrixType>
 void DTUtil::matrixMeanError(const vector<MatrixType> & errors, MatrixType & mean)
 {
@@ -305,6 +331,20 @@ double DTUtil::crossEntropy(const Eigen::VectorXd & prob)
         entropy += - p * std::log(p);
     }
     return entropy;
+}
+
+double DTUtil::crossEntropy(const Eigen::VectorXf& prob)
+{
+    double entropy = 0.0;
+    for (int i = 0; i<prob.size(); i++) {
+        double p = prob[i];
+        if (p == 0.0) {
+            continue;
+        }
+        assert(p > 0 && p <= 1);
+        entropy += - p * std::log(p);
+    }
+    return entropy;    
 }
 
 
@@ -434,6 +474,9 @@ DTUtil::rowMeanStddev(const vector<Eigen::MatrixXf> & labels, const vector<unsig
 
 template void
 DTUtil::meanMedianError(const vector<Eigen::VectorXf> & errors, Eigen::VectorXf & mean, Eigen::VectorXf & median);
+
+template
+void DTUtil::quartileError(const vector<Eigen::VectorXf> & errors, Eigen::VectorXf& q1, Eigen::VectorXf& q2, Eigen::VectorXf& q3);
 
 template void
 DTUtil::matrixMeanError(const vector<Eigen::MatrixXf> & errors, Eigen::MatrixXf & mean);

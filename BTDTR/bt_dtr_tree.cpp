@@ -112,7 +112,9 @@ static bool bestSplitDimension(const vector<VectorXf> & features,
             }
         }
         
-        if (cur_left_indices.size() < min_split_num || cur_right_indices.size() < min_split_num) {
+        if (cur_left_indices.size() < min_split_num ||
+            cur_right_indices.size() < min_split_num) {
+            //printf("lefe sample number %lu, right sample number %lu\n", cur_left_indices.size(), cur_right_indices.size());
             continue;
         }
         

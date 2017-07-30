@@ -10,6 +10,7 @@
 #include <string>
 #include "bt_dtr_node.h"
 #include "yael_io.h"
+#include "cvx_util.hpp"
 
 using std::string;
 
@@ -67,16 +68,26 @@ bool BTDTRegressor::predict(const Eigen::VectorXf & feature,
     assert(predictions.size() == 0);
     assert(dists.size() == 0);
     
+    // Step 1: predict from each tree
+    vector<Eigen::VectorXf> unordered_predictions;
+    vector<float> unordered_dists;
     for (int i = 0; i<trees_.size(); i++) {
         Eigen::VectorXf cur_pred;
         float dist;
         bool is_pred = trees_[i]->predict(feature, maxCheck, cur_pred, dist);
         if (is_pred) {
-            predictions.push_back(cur_pred);
-            dists.push_back(dist);
+            unordered_predictions.push_back(cur_pred);
+            unordered_dists.push_back(dist);
         }
     }
-    assert(predictions.size() == dists.size());
+    assert(unordered_predictions.size() == unordered_dists.size());
+    
+    // Step 2: ordered by local patch feature distance
+    vector<size_t> sortIndexes = CvxUtil::sortIndices<float>(unordered_dists);
+    for (int i = 0; i<sortIndexes.size(); i++) {
+        predictions.push_back(unordered_predictions[sortIndexes[i]]);
+        dists.push_back(unordered_dists[sortIndexes[i]]);
+    }
     
     return predictions.size() == trees_.size();
 }

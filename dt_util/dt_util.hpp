@@ -62,12 +62,21 @@ public:
     template <class T>
     static void meanMedianError(const vector<T> & errors, T & mean, T & median);
     
+    // https://en.wikipedia.org/wiki/Quartile
+    // q1, q2, q3: first, second and third quartile. The second quartile is median
+    template <class vectorT>
+    static void quartileError(const vector<vectorT> & errors, vectorT & q1, vectorT& q2, vectorT& q3);
+    
     // mean error of each row of a list of matrixes
     template <class MatrixType>
     static void matrixMeanError(const vector<MatrixType> & errors, MatrixType & mean);
     
    
-    static double crossEntropy(const Eigen::VectorXd & prob);
+    static double crossEntropy(const Eigen::VectorXd& prob);
+    
+    static double crossEntropy(const Eigen::VectorXf& prob);
+    
+    
     
     static double balanceLoss(const int leftNodeSize, const int rightNodeSize);
     
