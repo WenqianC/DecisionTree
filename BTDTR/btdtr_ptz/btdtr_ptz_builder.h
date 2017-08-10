@@ -33,9 +33,15 @@ public:
 
     // build model from subset of images
     // sift feature are precomputed to save time
+    // feature_files: has keypoint location and feature descriptor
     bool buildModel(BTDTRegressor& model,                    
                     const vector<string> & feature_files,
                     const vector<Eigen::Vector3f> & ptzs,
+                    const char *model_file_name) const;
+    
+    // ptz_keypoint_descriptor_files: .mat file has ptz, keypoint location and descriptor    //
+    bool buildModel(BTDTRegressor& model,
+                    const vector<string> & ptz_keypoint_descriptor_files,
                     const char *model_file_name) const;
     
 private:
@@ -44,6 +50,10 @@ private:
                           const vector<string> & feature_files,
                           const vector<Eigen::Vector3f> & ptzs,
                           const int sample_frame_num = 10) const;
+    
+    bool validationError(const BTDTRegressor & model,
+                         const vector<string> & ptz_keypoint_descriptor_files,
+                         const int sample_frame_num = 10) const;
 
 
 

@@ -475,6 +475,9 @@ DTUtil::rowMeanStddev(const vector<Eigen::MatrixXf> & labels, const vector<unsig
 template void
 DTUtil::meanMedianError(const vector<Eigen::VectorXf> & errors, Eigen::VectorXf & mean, Eigen::VectorXf & median);
 
+template void
+DTUtil::meanMedianError(const vector<Eigen::VectorXd> & errors, Eigen::VectorXd & mean, Eigen::VectorXd & median);
+
 template
 void DTUtil::quartileError(const vector<Eigen::VectorXf> & errors, Eigen::VectorXf& q1, Eigen::VectorXf& q2, Eigen::VectorXf& q3);
 

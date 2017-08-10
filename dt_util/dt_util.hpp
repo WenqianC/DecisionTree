@@ -74,8 +74,7 @@ public:
    
     static double crossEntropy(const Eigen::VectorXd& prob);
     
-    static double crossEntropy(const Eigen::VectorXf& prob);
-    
+    static double crossEntropy(const Eigen::VectorXf& prob);   
     
     
     static double balanceLoss(const int leftNodeSize, const int rightNodeSize);

@@ -6,7 +6,7 @@
 //  Copyright (c) 2017 Nowhere Planet. All rights reserved.
 //
 
-#if 1
+#if 0
 
 #include <stdio.h>
 #include <iostream>
@@ -22,7 +22,7 @@ using namespace std;
 static void help()
 {
     printf("program        modelFile   seqFile       baseDir   maxCheck saveDir\n");
-    printf("BTDTR_PTZ_test model.txt   feat_seq1.txt ./seq/    8        result/\n");
+    printf("BTDTR_PTZ_test model.txt   feat_seq1.txt ./seq/    8        result\n");
     printf("modelFile: a random forest . \n");
     printf("seqFile: a text file has a sequence of (feature, label) pairs. Label is not acutally used.\n");
     printf("baseDir: base directory of the sequence of features. Features are stored in .mat file. \n");
@@ -65,8 +65,8 @@ static Eigen::VectorXf toLongVector(const vector<float> & dist)
 
 int main(int argc, const char * argv[])
 {
-    if (argc != 5) {
-        printf("argc is %d, should be 5.\n", argc);
+    if (argc != 6) {
+        printf("argc is %d, should be 6.\n", argc);
         help();
         return -1;
     }

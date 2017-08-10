@@ -108,6 +108,42 @@ static bool readSIFTLocationAndDescriptors(const char *mat_file,
     //printf("load %lu features from %s\n", features.size(), mat_file);
     return true;
 }
+    static bool readPTZFeatureLocationAndDescriptors(const char *mat_file,
+                                                     Eigen::Vector3f & ptz,
+                                                     vector<Eigen::VectorXf> & locations,
+                                                     vector<Eigen::VectorXf> & descriptors)
+    {
+        
+        Eigen::MatrixXf keypoint_data;
+        Eigen::MatrixXf descriptor_data;
+        Eigen::MatrixXf ptz_data;
+        bool is_read = matio::readMatrix(mat_file, "keypoint", keypoint_data, false);
+        assert(is_read);
+        is_read = matio::readMatrix(mat_file, "descriptor", descriptor_data, false);
+        assert(is_read);
+        assert(keypoint_data.rows() == descriptor_data.rows());
+        
+        is_read = matio::readMatrix(mat_file, "ptz", ptz_data, false);
+        assert(ptz_data.rows() == 3 && ptz_data.cols() == 1);
+        ptz[0] = ptz_data(0, 0);
+        ptz[1] = ptz_data(1, 0);
+        ptz[2] = ptz_data(2, 0);
+        
+        const int dims = (int) descriptor_data.cols();
+        Eigen::VectorXf loc = VectorXf::Zero(2, 1);
+        Eigen::VectorXf feat = VectorXf::Zero(dims, 1);
+        for (int i = 0; i<keypoint_data.rows(); i++) {
+            loc[0] = keypoint_data(i, 0);
+            loc[1] = keypoint_data(i, 1);
+            feat = descriptor_data.row(i);
+            
+            locations.push_back(loc);
+            descriptors.push_back(feat);
+        }
+        assert(locations.size() == descriptors.size());
+        
+        return true;
+    }
     
 void generatePTZSample(const char* feature_file_name,
                        const Eigen::Vector2f& pp,
@@ -132,6 +168,29 @@ void generatePTZSample(const char* feature_file_name,
         samples.push_back(s);
     }
 }
+    
+    void generatePTZSampleWithFeature(const char * feature_ptz_file_name,
+                                      const Eigen::Vector2f& pp,
+                                      Eigen::Vector3f & ptz,
+                                      vector<PTZSample> & samples)
+    {
+        assert(feature_ptz_file_name);
+        
+        vector<Eigen::VectorXf> locations;
+        vector<Eigen::VectorXf> features;
+        readPTZFeatureLocationAndDescriptors(feature_ptz_file_name, ptz, locations, features);
+        for (int i = 0; i<locations.size(); i++) {
+            PTZSample s;
+            Eigen::Vector2f pan_tilt;
+            s.loc_[0] = locations[i][0];
+            s.loc_[1] = locations[i][1];
+            EigenX::pointPanTilt(pp, ptz, s.loc_, pan_tilt);
+            s.pan_tilt_[0] = pan_tilt[0];
+            s.pan_tilt_[1] = pan_tilt[1];
+            s.descriptor_ = features[i];
+            samples.push_back(s);
+        }
+    }
     
 void readSequenceData(const char * sequence_file_name,
                                         const char * sequence_base_directory,

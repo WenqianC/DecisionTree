@@ -37,7 +37,7 @@ public:
     generateRandomNumber(const double min_v, const double max_v, int num);
     
     // generate one random number
-    static double randomNumber(const double min_v, const double max_v);
+    //static double randomNumber(const double min_v, const double max_v);
     
 };
 

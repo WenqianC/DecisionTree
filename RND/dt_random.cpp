@@ -79,6 +79,7 @@ DTRandom::generateRandomNumber(const double min_v, const double max_v, int num)
     return values;
 }
 
+/*
 double
 DTRandom::randomNumber(const double min_v, const double max_v)
 {
@@ -86,6 +87,7 @@ DTRandom::randomNumber(const double min_v, const double max_v)
     vnl_random rnd;
     return rnd.drand32(min_v, max_v);
 }
+ */
 
 template
 void DTRandom::outofBagSampling(const unsigned int N,

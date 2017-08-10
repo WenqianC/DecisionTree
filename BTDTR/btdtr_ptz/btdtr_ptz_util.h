@@ -54,10 +54,20 @@ public:
 };
     
 //
+    // pp: principal point
+    // ptz: pan, tilt and focal length of the image
+    // samples: sample data, has No feature descriptor
 void generatePTZSample(const char* feature_file_name,
                        const Eigen::Vector2f& pp,
                        const Eigen::Vector3f& ptz,
                        vector<PTZSample>& samples);
+    
+    //feature_ptz_file_name: .mat file
+    // contains: im_name (str), camera (9x1), ptz (3x1), keypoint (nx2), descriptor (nx128)
+void generatePTZSampleWithFeature(const char * feature_ptz_file_name,
+                                  const Eigen::Vector2f& pp,
+                                  Eigen::Vector3f & ptz,
+                                  vector<PTZSample> & samples);
 
 void readSequenceData(const char * sequence_file_name,
                       const char * sequence_base_directory,
