@@ -124,8 +124,9 @@ bool DTCTree::setLeafNode(const vector<Eigen::VectorXf> & features,
     node->is_leaf_ = true;
     Eigen::VectorXf prob = Eigen::VectorXf::Zero(category_num);
     for (int i = 0; i<indices.size(); i++) {
-        assert(labels[indices[i]] >= 0 && labels[indices[i]] < category_num);
-        prob[labels[indices[i]]] += 1.0f;
+        int label = labels[indices[i]];
+        assert(label >= 0 && label < category_num);
+        prob[label] += 1.0f;
     }
     prob /= indices.size();
     node->prob_ = prob;

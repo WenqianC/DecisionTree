@@ -13,8 +13,9 @@ using std::vector;
 
 class BTDTRegressor
 {
-public:
     friend class BTDTRegressorBuilder;
+    friend class BTDTRPTZBuilder;
+private:
     
     vector<BTDTRTree* > trees_;
     BTDTRTreeParameter reg_tree_param_;
@@ -42,10 +43,19 @@ public:
                  vector<Eigen::VectorXf> & predictions,
                  vector<float> & dists) const;
     
+    // return every prediction and distance from first maxTreeNum tree
+    // maxTreeNum: number of trees that use in the prediction
+    bool predict(const Eigen::VectorXf & feature,
+                 const int maxCheck,
+                 const int maxTreeNum,
+                 vector<Eigen::VectorXf> & predictions,
+                 vector<float> & dists) const;
+    
     
     bool saveModel(const char *file_name) const;
     bool load(const char *file_name);
     
+    int treeNum(void){return (int)trees_.size();}    
 };
 
 

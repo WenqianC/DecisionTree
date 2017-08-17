@@ -91,7 +91,6 @@ public:
     void setTreeParameter(const TreeParameter & param);
     
     
-    
 private:
     bool buildTreeImpl(const vector<VectorXf> & features,
                        const vector<int> & labels,

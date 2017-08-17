@@ -24,6 +24,25 @@ using Eigen::VectorXi;
 
 using std::vector;
 
+namespace dt {
+    // randomly generate a subset of dimensions
+    template<class intType>
+    vector<intType> randomDimension(const intType dim, const intType num);
+    
+    template <class intType>
+    static vector<intType> range(int start, int end, int step)
+    {
+        assert((end - start) * step >= 0);
+        vector<intType> ret;
+        for (int i = start; i < end; i += step) {
+            ret.push_back((intType)i);
+        }
+        return ret;
+    }
+
+    
+}  // namespace
+
 class DTUtil
 {
 public:

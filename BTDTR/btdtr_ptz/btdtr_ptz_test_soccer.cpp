@@ -10,6 +10,7 @@
 
 #include <stdio.h>
 #include <iostream>
+#include <time.h>
 #include "btdtr_ptz_builder.h"
 #include "bt_dt_regressor.h"
 #include "mat_io.hpp"
@@ -24,44 +25,57 @@ using namespace std;
 
 static void help()
 {
-    printf("program        modelFile   seqFile       baseDir   maxCheck saveDir\n");
-    printf("BTDTR_PTZ_test model.txt   feat_seq1.txt ./seq/    8        result\n");
+    printf("program        modelFile   ptz_feature_folder  maxCheck reprojThreshold distanceThreshold sampleNumber maxTreeNum saveFile  \n");
+    printf("BTDTR_PTZ_test model.txt   ptz_sift/*.mat      4        2               0.2               32           -1         result.mat \n");
     printf("modelFile: a random forest . \n");
-    printf("seqFile: a text file has a sequence of (feature, label) pairs. Label is not acutally used.\n");
-    printf("baseDir: base directory of the sequence of features. Features are stored in .mat file. \n");
-    printf("Basketball 4 sequence: /Users/jimmy/Desktop/images/Youtube/PTZRegressor/four_sequences/ \n");
+    printf("ptz_feature_folder: .mat file contains ptz, keypoint and descriptor.\n");
     printf("maxCheck: back tracking decision tree parameter, the larger the slower\n");
-    printf("saveDir: folder to save predictions \n");
+    printf("reprojThreshold: camera pose estimation parameter. unit pixel\n");
+    printf("distanceThreshold: (SIFT) feature distance threhold \n");
+    printf("sampleNumber: preemptive RANSAC sample number in each iteration \n");
+    printf("maxTreeNum: number of trees used in the test. For ablation experiment. -1 for use all trees.\n");
+    printf("saveFile: .mat file ground truth PTZ and estimated PTZ \n");
     printf("default image size is 1280 x 720\n");
+    
 }
 
 
 int main(int argc, const char * argv[])
 {
-    /*
-    if (argc != 6) {
-        printf("argc is %d, should be 6.\n", argc);
+    if (argc != 9) {
+        printf("argc is %d, should be 9.\n", argc);
         help();
         return -1;
     }
     
     const char * model_file = argv[1];
-    const char * seq_file = argv[2];
-    const char * seq_base_directory = argv[3];
-    const int max_check = strtod(argv[4], NULL);
-    const char * save_dir = argv[5];
-     */    
+    const char * ptz_feature_folder = argv[2];
+    const int max_check = strtod(argv[3], NULL);
+    const double reprojection_error_threshold = strtod(argv[4], NULL);
+    const double distance_threshold = strtod(argv[5], NULL);
+    const int sample_number = (int)strtod(argv[6], NULL);
+    int maxTreeNum = (int)strtod(argv[7], NULL);
+    const char * save_file = argv[8];
     
-    const char * model_file = "/Users/jimmy/Desktop/BTDT_ptz/model/debug.txt";
-    const char * ptz_feature_folder = "/Users/jimmy/Desktop/images/bmvc17_soccer/random_forest/ptz_sift_inlier/*.mat";
+    /*
+    const char * model_file = "/Users/jimmy/Desktop/BTDT_ptz_soccer/model/seq2_model.txt";
+    const char * ptz_feature_folder = "/Users/jimmy/Desktop/BTDT_ptz_soccer/soccer_data/train_data/seq1_ptz_sift_inlier/*.mat";
     const int max_check =  8;
-    const char * save_file = "result.mat";
-    
     const double reprojection_error_threshold = 2.0;
+    const double distance_threshold = 0.2;
+    const int sample_number = 32;
+    const char * save_file = "result.mat";
+     */
     
     // read model
     BTDTRegressor model;
-    model.load(model_file);
+    bool is_read = model.load(model_file);
+    assert(is_read);
+    
+    if (maxTreeNum == -1) {
+        maxTreeNum = model.treeNum();
+    }
+    printf("use %d trees in the test\n", maxTreeNum);
     
     // read testing examples
     vector<string> feature_files;
@@ -70,6 +84,7 @@ int main(int argc, const char * argv[])
     Eigen::Vector2f pp(1280.0/2.0, 720.0/2.0);
     ptz_pose_opt::PTZPreemptiveRANSACParameter param;
     param.reprojection_error_threshold_ = reprojection_error_threshold;
+    param.sample_number_ = sample_number;
     printf("principal point is fixed at %lf %lf\n", pp.x(), pp.y());
     printf("inlier reprojection error is %lf pixels\n", param.reprojection_error_threshold_);
     
@@ -89,25 +104,32 @@ int main(int argc, const char * argv[])
         Eigen::Vector3d estimated_ptz(0, 0, 0);
         
         // predict from observation (descriptors)
+        double tt = clock();
         for (int j = 0; j<samples.size(); j++) {
             btdtr_ptz_util::PTZSample s = samples[j];
             Eigen::VectorXf feat = s.descriptor_;
             vector<Eigen::VectorXf> cur_predictions;
             vector<float> cur_dists;
-            model.predict(feat, max_check, cur_predictions, cur_dists);
+            model.predict(feat, max_check, maxTreeNum, cur_predictions, cur_dists);
             assert(cur_predictions.size() == cur_dists.size());
             
-            image_points.push_back(Eigen::Vector2d(s.loc_.x(), s.loc_.y()));
-            vector<Eigen::Vector2d> cur_candidate;
-            for (int k = 0; k<cur_predictions.size(); k++) {
-                assert(cur_predictions[k].size() == 2);
-                cur_candidate.push_back(Eigen::Vector2d(cur_predictions[k][0], cur_predictions[k][1]));
+            //cout<<"minimum feature distance "<<cur_dists[0]<<endl;
+            if (cur_dists[0] < distance_threshold) {
+                image_points.push_back(Eigen::Vector2d(s.loc_.x(), s.loc_.y()));
+                vector<Eigen::Vector2d> cur_candidate;
+                for (int k = 0; k<cur_predictions.size(); k++) {
+                    assert(cur_predictions[k].size() == 2);
+                    if (cur_dists[k] < distance_threshold) {
+                        cur_candidate.push_back(Eigen::Vector2d(cur_predictions[k][0], cur_predictions[k][1]));
+                    }
+                }
+                candidate_pan_tilt.push_back(cur_candidate);
             }
-            candidate_pan_tilt.push_back(cur_candidate);
         }
         // estimate camera pose
         bool is_opt = ptz_pose_opt::preemptiveRANSACOneToMany(image_points, candidate_pan_tilt, principal_point,
                                                 param, estimated_ptz, false);
+        printf("Prediction and camera pose estimation cost time: %f seconds.\n", (clock() - tt)/CLOCKS_PER_SEC);
         if (is_opt) {
             cout<<"ptz estimation error: "<<(ptz_gt - estimated_ptz).transpose()<<endl;
         }
@@ -119,7 +141,7 @@ int main(int argc, const char * argv[])
         index++;
     }
     assert(index == gt_ptz_all.rows());
-        
+    
     std::vector<std::string> var_name;
     std::vector<Eigen::MatrixXd> data;
     var_name.push_back("ground_truth_ptz");

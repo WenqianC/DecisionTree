@@ -92,6 +92,42 @@ bool BTDTRegressor::predict(const Eigen::VectorXf & feature,
     return predictions.size() == trees_.size();
 }
 
+bool BTDTRegressor::predict(const Eigen::VectorXf & feature,
+                            const int maxCheck,
+                            const int maxTreeNum,
+                            vector<Eigen::VectorXf> & predictions,
+                            vector<float> & dists) const
+{
+    assert(trees_.size() > 0);
+    assert(feature_dim_ == feature.size());
+    assert(predictions.size() == 0);
+    assert(dists.size() == 0);
+    assert(maxTreeNum >= 0 && maxTreeNum <= trees_.size());
+    
+    // Step 1: predict from each tree
+    vector<Eigen::VectorXf> unordered_predictions;
+    vector<float> unordered_dists;
+    for (int i = 0; i<trees_.size() && i< maxTreeNum; i++) {
+        Eigen::VectorXf cur_pred;
+        float dist;
+        bool is_pred = trees_[i]->predict(feature, maxCheck, cur_pred, dist);
+        if (is_pred) {
+            unordered_predictions.push_back(cur_pred);
+            unordered_dists.push_back(dist);
+        }
+    }
+    assert(unordered_predictions.size() == unordered_dists.size());
+    
+    // Step 2: ordered by local patch feature distance
+    vector<size_t> sortIndexes = CvxUtil::sortIndices<float>(unordered_dists);
+    for (int i = 0; i<sortIndexes.size(); i++) {
+        predictions.push_back(unordered_predictions[sortIndexes[i]]);
+        dists.push_back(unordered_dists[sortIndexes[i]]);
+    }
+    
+    return predictions.size() == maxTreeNum;
+}
+
 bool BTDTRegressor::saveModel(const char *file_name) const
 {
     assert(trees_.size() > 0);

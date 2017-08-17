@@ -13,6 +13,30 @@
 using std::cout;
 using std::endl;
 
+namespace dt {
+    template< class T>
+    vector<T> randomDimension(const T dim, const T num)
+    {
+        assert(dim > 0);
+        assert(num > 0);
+        assert(num <= dim);
+        
+        vector<T> dims;
+        for (T i = 0; i<dim; i++) {
+            dims.push_back(i);
+        }
+        std::random_shuffle(dims.begin(), dims.end());
+        vector<T> random_dim(dims.begin(), dims.begin() + num);
+        assert(random_dim.size() > 0 && random_dim.size() <= dims.size());
+        
+        return random_dim;
+    }
+    
+    template vector<int> randomDimension(int dim, int num);
+}
+
+
+
 vector<unsigned int> DTUtil::randomDimensions(const int dimension, const int candidate_dimension)
 {
     assert(dimension > 0);

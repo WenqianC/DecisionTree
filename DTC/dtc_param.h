@@ -13,7 +13,7 @@
 #include <vector>
 #include <Eigen/Dense>
 #include <iostream>
-#include "ParameterParser.h"
+#include "dt_param_parser.h"
 
 using std::vector;
 using Eigen::VectorXd;
@@ -67,7 +67,7 @@ public:
     
     bool readFromFile(const char *fileName)
     {
-        ParameterParser parser;
+        dt::ParameterParser parser;
         bool is_read = parser.loadParameter(fileName);
         assert(is_read);
         
@@ -88,7 +88,7 @@ public:
     
     bool readFromFile(FILE *pf)
     {
-        ParameterParser parser;
+        dt::ParameterParser parser;
         bool is_read = parser.readFromFile(pf);
         assert(is_read);
         
@@ -109,7 +109,7 @@ public:
     
     bool writeToFile(FILE *pf)const
     {
-        ParameterParser parser;
+        dt::ParameterParser parser;
         parser.setIntValue("tree_num", tree_num_);
         parser.setIntValue("max_depth", max_depth_);
         parser.setIntValue("min_leaf_node_num", min_leaf_node_num_);
