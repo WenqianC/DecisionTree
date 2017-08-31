@@ -30,7 +30,7 @@ namespace dt {
     vector<intType> randomDimension(const intType dim, const intType num);
     
     template <class intType>
-    static vector<intType> range(int start, int end, int step)
+    vector<intType> range(int start, int end, int step)
     {
         assert((end - start) * step >= 0);
         vector<intType> ret;
@@ -39,6 +39,10 @@ namespace dt {
         }
         return ret;
     }
+    
+    // mean and standard deviation
+    template <class vectorType>
+    void meanStd(const vector<vectorType> & labels, vectorType & mean, vectorType & sigma);
 
     
 }  // namespace

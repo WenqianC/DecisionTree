@@ -81,7 +81,7 @@ int main(int argc, const char * argv[])
     vector<string> feature_files;
     CvxUtil::readFilenames(ptz_feature_folder, feature_files);
     
-    Eigen::Vector2f pp(1280.0/2.0, 720.0/2.0);
+    Eigen::Vector2d pp(1280.0/2.0, 720.0/2.0);
     ptz_pose_opt::PTZPreemptiveRANSACParameter param;
     param.reprojection_error_threshold_ = reprojection_error_threshold;
     param.sample_number_ = sample_number;
@@ -94,13 +94,12 @@ int main(int argc, const char * argv[])
     for (const string &file_name: feature_files) {
         vector<btdtr_ptz_util::PTZSample> samples;
         Eigen::Vector3f ptz;
-        btdtr_ptz_util::generatePTZSampleWithFeature(file_name.c_str(), pp, ptz, samples);
+        btdtr_ptz_util::generatePTZSampleWithFeature(file_name.c_str(), pp.cast<float>(), ptz, samples);
         Eigen::Vector3d ptz_gt(ptz.x(), ptz.y(), ptz.z());
         printf("feature number is %lu\n", samples.size());
         
         vector<Eigen::Vector2d> image_points;
         vector<vector<Eigen::Vector2d> > candidate_pan_tilt;
-        Eigen::Vector2d principal_point(pp.x(), pp.y());
         Eigen::Vector3d estimated_ptz(0, 0, 0);
         
         // predict from observation (descriptors)
@@ -127,14 +126,15 @@ int main(int argc, const char * argv[])
             }
         }
         // estimate camera pose
-        bool is_opt = ptz_pose_opt::preemptiveRANSACOneToMany(image_points, candidate_pan_tilt, principal_point,
+        bool is_opt = ptz_pose_opt::preemptiveRANSACOneToMany(image_points, candidate_pan_tilt, pp,
                                                 param, estimated_ptz, false);
         printf("Prediction and camera pose estimation cost time: %f seconds.\n", (clock() - tt)/CLOCKS_PER_SEC);
         if (is_opt) {
             cout<<"ptz estimation error: "<<(ptz_gt - estimated_ptz).transpose()<<endl;
         }
         else {
-            printf("Optimize PTZ failed\n");
+            printf("-------------------------------------------- Optimize PTZ failed.\n");
+            printf("valid feature number is %lu\n\n", image_points.size());
         }
         gt_ptz_all.row(index) = ptz_gt;
         estimated_ptz_all.row(index) = estimated_ptz;

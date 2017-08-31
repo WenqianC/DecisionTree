@@ -32,7 +32,37 @@ namespace dt {
         return random_dim;
     }
     
+    template< class vectorType>
+    void meanStd(const vector<vectorType> & labels, vectorType & mean, vectorType & sigma)
+    {
+        assert(labels.size() > 0);
+        
+        mean = vectorType::Zero(labels[0].size());
+        
+        for (int i = 0; i<labels.size(); i++) {
+            mean += labels[i];
+        }
+        mean /= labels.size();
+        
+        sigma = vectorType::Zero(labels[0].size());
+        if (labels.size() == 1) {
+            return;
+        }
+        for (int i = 0; i<labels.size(); i++) {
+            vectorType dif = labels[i] - mean;
+            for (int j = 0; j<sigma.size(); j++) {
+                sigma[j] += dif[j] * dif[j];
+            }
+        }
+        for (int j = 0; j<sigma.size(); j++) {
+            sigma[j] = sqrt(fabs(sigma[j])/labels.size());
+        }
+    }
+    
     template vector<int> randomDimension(int dim, int num);
+    
+    template void meanStd(const vector<Eigen::VectorXd> & labels, Eigen::VectorXd & mean, Eigen::VectorXd & sigma);
+    template void meanStd(const vector<Eigen::Vector3d> & labels, Eigen::Vector3d & mean, Eigen::Vector3d & sigma);
 }
 
 
