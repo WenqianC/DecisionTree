@@ -10,8 +10,7 @@
 #include "dt_random.hpp"
 #include <iostream>
 #include "dt_util.hpp"
-#include "dt_proximity.hpp"
-#include "mat_io.hpp"
+//#include "mat_io.hpp"
 
 using std::cout;
 using std::endl;
@@ -43,7 +42,7 @@ bool DTClassifierBuilder::buildModel(DTClassifer & model,
         // bagging
         vector<int> training_indices;
         vector<int> validation_indices;
-        DTRandom::outofBagSampling<int>((unsigned int) features.size(), training_indices, validation_indices);
+        DTRandom::outofBagSampling<int>(N, training_indices, validation_indices);
         
         DTCTree * tree = new DTCTree();
         assert(tree);
@@ -83,19 +82,6 @@ bool DTClassifierBuilder::buildModel(DTClassifer & model,
             cout<<"Validation confusion matrix: \n"<<valid_conf<<endl;
             cout<<"Validation accuracy: \n"<<accuracy.transpose()<<endl;
         }
-        /*
-        if (is_proximity) {
-            vector<int> indices = DTUtil::range<int>(0, (int)features.size(), 1);
-            tree->computeProximity(features, indices, data_proximity);            
-            
-            // void computeProximityMatrix(const int k);
-            data_proximity.computeProximityMatrix(5);            
-            const Eigen::MatrixXf prox_mat = data_proximity.getMatrix();
-            matio::writeMatrix((string("tree_") + std::to_string(n) + string("_prox.mat")).c_str(),
-                               "proximity", prox_mat);
-        }
-         */        
-        
     }
     return true;
 }
