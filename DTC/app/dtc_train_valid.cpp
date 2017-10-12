@@ -175,7 +175,6 @@ int main(int argc, const char * argv[])
         matio::writeMultipleMatrix<Eigen::MatrixXd>(result_file, names, data);
     }
     
-    
     cout<<tree_param<<endl;
     
     return 0;
