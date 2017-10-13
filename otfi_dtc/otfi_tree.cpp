@@ -258,8 +258,8 @@ bool OTFITree::imputeFeature(const vector<Eigen::VectorXf> & features,
 {
     assert(root_);
     return this->imputeFeatureImpl(root_, features, labels, indices, 
-            mdata_labels, mdata_indices, mdata_mask,
-            mdata_features, weight);
+                                   mdata_labels, mdata_indices, mdata_mask,
+                                   mdata_features, weight);
 }
 
 

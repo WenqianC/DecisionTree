@@ -495,6 +495,21 @@ Eigen::VectorXd DTUtil::accuracyFromConfusionMatrix(const Eigen::MatrixXd & conf
     return acc;
 }
 
+Eigen::VectorXd DTUtil::precisionFromConfusionMatrix(const Eigen::MatrixXd & conf)
+{
+    assert(conf.rows() == conf.cols());
+    
+    Eigen::VectorXd precision = Eigen::VectorXd(conf.rows() + 1, 1);
+    Eigen::VectorXd row_sum = conf.rowwise().sum();
+    double all_sum = conf.sum();
+    double trace = conf.trace();
+    for (int r = 0; r<conf.rows(); r++) {
+        precision[r] = conf(r ,r)/row_sum[r];
+    }
+    precision[conf.rows()] = trace/all_sum;
+    return precision;
+}
+
 
 
 

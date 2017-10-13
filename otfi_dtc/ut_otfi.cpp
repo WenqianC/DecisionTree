@@ -225,7 +225,7 @@ void test_otfi_multiple_trees()
         
         OTFIClassifier model;
         builder.setTreeParameter(tree_param);
-        builder.buildModel(model, features, labels);
+        builder.buildModel(model, features, labels, "debug.txt");
         
         // add prediction
         vector<int> predictions(mdata_labels.size());
@@ -259,7 +259,10 @@ void test_otfi_multiple_trees()
         //cout<<"confusion matrix (missing data): \n"<<conf<<endl<<endl;
         conf_miss += conf;
         
-        model.imputeFeature(features, labels, mdata_features, mdata_labels, missing_mask);
+        
+        OTFIClassifier another_model;  // test model read/write
+        another_model.load("debug.txt");
+        another_model.imputeFeature(features, labels, mdata_features, mdata_labels, missing_mask);
         
         for (int i =0 ; i<mdata_features.size(); i++) {
             int pred = 0;

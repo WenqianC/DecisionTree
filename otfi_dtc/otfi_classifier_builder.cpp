@@ -30,8 +30,9 @@ void OTFIClassifierBuilder::setTreeParameter(const TreeParameter & param)
 }
 
 void OTFIClassifierBuilder::buildModel(OTFIClassifier & model, 
-                    const vector<Eigen::VectorXf> & features,
-                    const vector<int> & labels)
+                                       const vector<Eigen::VectorXf> & features,
+                                       const vector<int> & labels,
+                                       const char* model_file_name)
 {
     assert(features.size() == labels.size());    
     model.tree_param_ = tree_param_;
@@ -54,11 +55,11 @@ void OTFIClassifierBuilder::buildModel(OTFIClassifier & model,
         model.trees_.push_back(pTree);
         printf("build tree %d cost %lf minutes\n", n, (clock()- tt)/CLOCKS_PER_SEC/60.0);
         
-        /*
+        
         if (model_file_name != NULL) {
             model.save(model_file_name);
         }
-         */        
+        
         // single tree out-of-bag validataion error
         vector<int> oob_predictions;
         vector<int> oob_labels;

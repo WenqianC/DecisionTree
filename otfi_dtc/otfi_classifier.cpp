@@ -104,8 +104,9 @@ bool OTFIClassifier::save(const char *fileName) const
         printf("Error: can not open file %s\n", fileName);
         return false;
     }
+    
+    tree_param_.writeToFile(pf); // must put at the very begining
     fprintf(pf, "%d %d\n", feature_dim_, tree_param_.category_num_);
-    tree_param_.writeToFile(pf);
     vector<string> tree_files;
     string baseName = string(fileName);
     baseName = baseName.substr(0, baseName.size()-4);
@@ -134,13 +135,14 @@ bool OTFIClassifier::load(const char *fileName)
         printf("Error: can not open file %s\n", fileName);
         return false;
     }
-    int category_num = 0;
-    int ret_num = fscanf(pf, "%d %d", &feature_dim_, &category_num);
-    assert(ret_num == 2);
     
     bool is_read = tree_param_.readFromFile(pf);
     assert(is_read);
     tree_param_.printSelf();
+    
+    int category_num = 0;
+    int ret_num = fscanf(pf, "%d %d", &feature_dim_, &category_num);
+    assert(ret_num == 2);
     
     vector<string> tree_files;
     for (int i = 0; i<tree_param_.tree_num_; i++) {

@@ -32,7 +32,8 @@ class OTFIClassifierBuilder {
     void setTreeParameter(const TreeParameter & param);
     void buildModel(OTFIClassifier & model, 
                     const vector<Eigen::VectorXf> & features,
-                    const vector<int> & labels);
+                    const vector<int> & labels,
+                    const char* model_file_name);
 
 
 };

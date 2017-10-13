@@ -122,8 +122,9 @@ public:
                                            const int category_num,
                                            bool normalize);
     
-    // accuracy of each category and average
+    // accuracy (should be precision) of each category and average
     static Eigen::VectorXd accuracyFromConfusionMatrix(const Eigen::MatrixXd & conf);
+    static Eigen::VectorXd precisionFromConfusionMatrix(const Eigen::MatrixXd & conf);
     
     template <class T>
     static vector<T> range(int start, int end, int step)

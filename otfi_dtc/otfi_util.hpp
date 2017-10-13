@@ -11,8 +11,9 @@
 
 #include <stdio.h>
 #include <assert.h>
-#include <unordered_map>
 #include <string>
+#include <unordered_map>
+#include "dt_param_parser.h"
 
 using std::unordered_map;
 using std::string;
@@ -45,10 +46,45 @@ public:
         verbose_ = false;
         verbose_leaf_ = false;
     }
+    
+    bool readFromFile(const char *fileName)
+    {
+        dt::ParameterParser parser;
+        bool is_read = parser.loadParameter(fileName);
+        assert(is_read);
+        
+        parser.getIntValue("tree_num", tree_num_);
+        parser.getIntValue("max_tree_depth", max_tree_depth_);
+        parser.getIntValue("min_leaf_node_num", min_leaf_node_num_);
+        parser.getIntValue("candidate_dim_num", candidate_dim_num_);
+        parser.getIntValue("candidate_threshold_num", candidate_threshold_num_);
+        parser.getIntValue("category_num", category_num_);
+        parser.getBoolValue("verbose", verbose_);
+        parser.getBoolValue("verbose_leaf", verbose_leaf_);
+        
+        return true;
+    }
 
+    
     bool readFromFile(FILE *pf)
     {
         assert(pf);
+        
+        dt::ParameterParser parser;
+        bool is_read = parser.readFromFile(pf);
+        assert(is_read);
+        
+        parser.getIntValue("tree_num", tree_num_);
+        parser.getIntValue("max_tree_depth", max_tree_depth_);
+        parser.getIntValue("min_leaf_node_num", min_leaf_node_num_);
+        parser.getIntValue("candidate_dim_num", candidate_dim_num_);
+        parser.getIntValue("candidate_threshold_num", candidate_threshold_num_);
+        parser.getIntValue("category_num", category_num_);
+        parser.getBoolValue("verbose", verbose_);
+        parser.getBoolValue("verbose_leaf", verbose_leaf_);
+        return true;
+        
+        /*
         
         const int param_num = 8;
         unordered_map<std::string, double> imap;
@@ -75,12 +111,37 @@ public:
         category_num_ = (int)imap[string("category_num")]; 
         verbose_ = (bool)imap[string("verbose")];
         verbose_leaf_ = (bool)imap[string("verbose_leaf")];
-        return true;
+         */
+        
     }
-
     
     bool writeToFile(FILE *pf)const
     {
+        /*
+         parser.getIntValue("tree_num", tree_num_);
+         parser.getIntValue("max_tree_depth", max_tree_depth_);
+         parser.getIntValue("min_leaf_node_num", min_leaf_node_num_);
+         parser.getIntValue("candidate_dim_num", candidate_dim_num_);
+         parser.getIntValue("candidate_threshold_num", candidate_threshold_num_);
+         
+         parser.getIntValue("category_num", category_num_);
+         parser.getBoolValue("verbose", verbose_);
+         parser.getBoolValue("verbose_leaf", verbose_leaf_);
+
+         */
+        dt::ParameterParser parser;
+        parser.setIntValue("tree_num", tree_num_);
+        parser.setIntValue("max_tree_depth", max_tree_depth_);
+        parser.setIntValue("min_leaf_node_num", min_leaf_node_num_);
+        parser.setIntValue("candidate_dim_num", candidate_dim_num_);
+        parser.setIntValue("candidate_threshold_num", candidate_threshold_num_);
+        
+        parser.setIntValue("category_num", category_num_);
+        parser.setBoolValue("verbose", verbose_);
+        parser.setBoolValue("verbose_leaf", verbose_leaf_);
+        parser.writeToFile(pf);
+        
+        /*
         assert(pf);
         fprintf(pf, "tree_num %d\n", tree_num_);
         fprintf(pf, "max_tree_depth %d\n", max_tree_depth_);        
@@ -93,6 +154,7 @@ public:
         
         fprintf(pf, "verbose %d\n", (int)verbose_);
         fprintf(pf, "verbose_leaf %d\n\n", (int)verbose_leaf_);
+         */
         return true;
     }
 
