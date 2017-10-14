@@ -114,6 +114,7 @@ private:
                  Eigen::VectorXf & prob) const;   
     
     
+    // read/write
     bool writeTree(const char *fileName) const;
     bool readTree(const char *fileName);
     

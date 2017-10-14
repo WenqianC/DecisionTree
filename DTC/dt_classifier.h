@@ -18,7 +18,6 @@ using std::vector;
 class DTClassifer
 {
     friend class DTClassifierBuilder;
-    friend class DTClassifer;
     
     vector<DTCTree* > trees_;
     DTCTreeParameter tree_param_;

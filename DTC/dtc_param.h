@@ -78,11 +78,7 @@ public:
         parser.getIntValue("split_candidate_num", split_candidate_num_);
         parser.getIntValue("feature_dimension", feature_dimension_);
         parser.getIntValue("category_num", category_num_);
-        
-        int verbose = 0;
-        parser.getIntValue("verbose", verbose);
-        verbose_ = (verbose != 0);
-        
+        parser.getBoolValue("verbose", verbose_);
         return true;
     }
     
@@ -99,11 +95,7 @@ public:
         parser.getIntValue("split_candidate_num", split_candidate_num_);
         parser.getIntValue("feature_dimension", feature_dimension_);
         parser.getIntValue("category_num", category_num_);
-        
-        int verbose = 0;
-        parser.getIntValue("verbose", verbose);
-        verbose_ = (verbose != 0);
-        
+        parser.getBoolValue("verbose", verbose_);
         return true;
     }
     
