@@ -9,7 +9,7 @@
 #include "dt_classifier.h"
 
 
-bool DTClassifer::predict(const Eigen::VectorXf & feature,
+bool DTClassifier::predict(const Eigen::VectorXf & feature,
                           Eigen::VectorXf & prob) const
 {
     assert(trees_.size() > 0);
@@ -27,7 +27,7 @@ bool DTClassifer::predict(const Eigen::VectorXf & feature,
     return true;
 }
 
-bool DTClassifer::predict(const Eigen::VectorXf & feature,
+bool DTClassifier::predict(const Eigen::VectorXf & feature,
                           int & pred)
 {
     Eigen::VectorXf prob;
@@ -39,7 +39,7 @@ bool DTClassifer::predict(const Eigen::VectorXf & feature,
     return true;
 }
 
-bool DTClassifer::save(const char *fileName) const
+bool DTClassifier::save(const char *fileName) const
 {
     assert(trees_.size() > 0);
     // write tree number and tree files to file Name
@@ -71,7 +71,7 @@ bool DTClassifer::save(const char *fileName) const
     return true;
 }
 
-bool DTClassifer::load(const char *fileName)
+bool DTClassifier::load(const char *fileName)
 {
     FILE *pf = fopen(fileName, "r");
     if (!pf) {
@@ -109,8 +109,4 @@ bool DTClassifer::load(const char *fileName)
     }
     printf("read from %s\n", fileName);
     return true;
-     
-
-    return false;
-    
 }

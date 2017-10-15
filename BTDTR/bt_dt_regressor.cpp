@@ -187,7 +187,7 @@ bool BTDTRegressor::load(const char *fileName)
     }
     
     int ret_num = fscanf(pf, "%d %d", &feature_dim_, &label_dim_);
-    assert(ret_num);
+    assert(ret_num == 2);
     
     bool is_read = reg_tree_param_.readFromFile(pf);
     assert(is_read);

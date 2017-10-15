@@ -23,7 +23,7 @@ using Eigen::VectorXf;
 // decision tree classifier Tree
 class DTCTree
 {
-    friend class DTClassifer;
+    friend class DTClassifier;
     
     typedef DTCSplitParameter SplitParameter;
     typedef DTCTreeParameter  TreeParameter;

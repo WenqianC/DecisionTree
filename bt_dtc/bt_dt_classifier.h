@@ -15,8 +15,12 @@
 
 using std::vector;
 
+class BTDTClassifierBuilder;
+
 class BTDTClassifier
 {
+    friend BTDTClassifierBuilder;
+    
     typedef BTDTCTree TreeType;
     typedef TreeType* TreePtr;
     typedef BTDTCTreeParameter  TreeParameter;
@@ -38,6 +42,16 @@ public:
                  const int max_check,
                  vector<int> & predictions,
                  vector<float> & dists) const;
+    
+    // majority vote
+    // dist_threshold: inlier distance threshold,
+    // return: false. No prediction, e.g., non-category fits.
+    bool predict(const Eigen::VectorXf & feature,
+                 const int max_check,
+                 int & prediction,
+                 const float dist_threshold = INT_MAX);
+    
+    int categoryNum(void){return category_num_;}
     
     bool save(const char *file_name) const;
     bool load(const char *file_name);

@@ -92,8 +92,7 @@ public:
         dt::ParameterParser parser;
         bool is_read = parser.loadParameter(fileName);
         assert(is_read);
-        getParameterFromParser(parser);
-        
+        getParameterFromParser(parser);        
         return true;
     }
     

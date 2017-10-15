@@ -20,7 +20,7 @@ void DTClassifierBuilder::setTreeParameter(const DTCTreeParameter & param)
     tree_param_ = param;
 }
 
-bool DTClassifierBuilder::buildModel(DTClassifer & model,
+bool DTClassifierBuilder::buildModel(DTClassifier & model,
                                      const vector<VectorXf> & features,
                                      const vector<int> & labels,
                                      const vector<VectorXf> & valid_features,
@@ -32,10 +32,8 @@ bool DTClassifierBuilder::buildModel(DTClassifer & model,
     
     model.tree_param_ = tree_param_;
     model.trees_.clear();
-    
     const int tree_num = tree_param_.tree_num_;
     const int category_num = tree_param_.category_num_;
-    
     const int N = (int)features.size();
     
     for (int n = 0; n<tree_num; n++) {
@@ -57,7 +55,7 @@ bool DTClassifierBuilder::buildModel(DTClassifer & model,
         vector<int> cv_labels;
         for (int i = 0; i<validation_indices.size(); i++) {
             const int index = validation_indices[i];
-            int pred;
+            int pred = 0;;
             model.predict(features[index], pred);
             cv_predictions.push_back(pred);
             cv_labels.push_back(labels[index]);            
@@ -87,7 +85,7 @@ bool DTClassifierBuilder::buildModel(DTClassifer & model,
 }
 
 
-bool DTClassifierBuilder::buildModel(DTClassifer & model,
+bool DTClassifierBuilder::buildModel(DTClassifier & model,
                                      const vector< vector<VectorXf> > & features,
                                      const vector< vector<int> > & labels,
                                      const int max_num_frames,

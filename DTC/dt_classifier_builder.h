@@ -24,7 +24,7 @@ private:
 public:
     void setTreeParameter(const DTCTreeParameter & param);
     
-    bool buildModel(DTClassifer & model,
+    bool buildModel(DTClassifier & model,
                     const vector<VectorXf> & features,
                     const vector<int> & labels,
                     const vector<VectorXf> & valid_features,
@@ -33,7 +33,7 @@ public:
     
     //features: a group of features, each group is from a single image
     //labels  : corresponding label
-    bool buildModel(DTClassifer & model,
+    bool buildModel(DTClassifier & model,
                     const vector< vector<VectorXf> > & features,
                     const vector< vector<int> > & labels,
                     const int max_num_frames,

@@ -6,8 +6,8 @@
 //  Copyright (c) 2016 Nowhere Planet. All rights reserved.
 //
 
-#ifndef __Classifer_RF__DTClassifier__
-#define __Classifer_RF__DTClassifier__
+#ifndef __Classifier_RF__DTClassifier__
+#define __Classifier_RF__DTClassifier__
 
 #include <stdio.h>
 #include <vector>
@@ -15,7 +15,7 @@
 
 using std::vector;
 
-class DTClassifer
+class DTClassifier
 {
     friend class DTClassifierBuilder;
     
