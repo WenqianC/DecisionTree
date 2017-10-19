@@ -29,6 +29,10 @@ public:
     bool predict(const Eigen::VectorXf & feature,
                  int & pred);
     
+    // measure variable importance
+    Eigen::VectorXd measureVariableImportance(const vector<Eigen::VectorXf> & features,
+                                              const vector<int> & labels);
+    
     bool save(const char *fileName) const;
     bool load(const char *fileName);
 };

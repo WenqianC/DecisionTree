@@ -6,7 +6,7 @@
 //  Copyright (c) 2017 Nowhere Planet. All rights reserved.
 //
 
-#if 1
+#if 0
 #include <stdio.h>
 #include <iostream>
 #include "bt_dt_classifier.h"

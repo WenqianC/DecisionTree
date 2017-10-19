@@ -79,6 +79,7 @@ static void readFramenumberFeatureLabel(const char * feature_mat_file,
 
 int main(int argc, const char * argv[])
 {
+    /*
     if (argc != 9) {
         printf("argc is %d, should be 9 .\n", argc);
         help();
@@ -93,18 +94,18 @@ int main(int argc, const char * argv[])
     const char *param_file = argv[6];
     const char *model_file = argv[7];
     const char *result_file = argv[8];
+     */
     
     
-    /*
-    const char *train_feature_file = "/Users/jimmy/Desktop/DTC_10_fold/10_fold/trainX_01.mat";
-    const char *train_label_file   = "/Users/jimmy/Desktop/DTC_10_fold/10_fold/trainY_01.mat";
-    const char *valid_feature_file = "/Users/jimmy/Desktop/DTC_10_fold/10_fold/testX_01.mat";
-    const char *valid_label_file = "/Users/jimmy/Desktop/DTC_10_fold/10_fold/testY_01.mat";
+    const char *train_feature_file = "/Users/jimmy/Desktop/DTC_10_fold/data/trainX.mat";
+    const char *train_label_file   = "/Users/jimmy/Desktop/DTC_10_fold/data/trainY.mat";
+    const char *valid_feature_file = "/Users/jimmy/Desktop/DTC_10_fold/data/testX.mat";
+    const char *valid_label_file = "/Users/jimmy/Desktop/DTC_10_fold/data/testY.mat";
     const int use_valid_data = 1;
     const char *param_file = "/Users/jimmy/Desktop/DTC_10_fold/dtc_tree_param.txt";
     const char *model_file = "model.txt";
     const char *result_file = "result.mat";
-     */
+    
     
     assert(use_valid_data == 0 || use_valid_data == 1);
     vector<int>  train_fns;
@@ -134,7 +135,7 @@ int main(int argc, const char * argv[])
     builder.setTreeParameter(tree_param);
     
     // train and save model
-    DTClassifer model;
+    DTClassifier model;
     builder.buildModel(model, train_features, train_labels, valid_features, valid_labels, model_file);
     model.save(model_file);
     printf("save model to %s\n", model_file);

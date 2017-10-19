@@ -14,10 +14,16 @@ BTDTClassifier::BTDTClassifier()
     feature_dim_ = 0;
     category_num_ = 0;
 }
+
 BTDTClassifier::~BTDTClassifier()
 {
-    //@todo, release memory in trees_
-    
+    for(int i = 0; i<trees_.size(); i++)
+    {
+        if (trees_[i]) {
+            delete trees_[i];
+            trees_[i] = NULL;
+        }
+    }
 }
 bool BTDTClassifier::predict(const Eigen::VectorXf & feature,
                              const int max_check,

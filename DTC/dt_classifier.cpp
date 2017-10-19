@@ -7,6 +7,7 @@
 //
 
 #include "dt_classifier.h"
+#include "dt_util.hpp"
 
 
 bool DTClassifier::predict(const Eigen::VectorXf & feature,
@@ -37,6 +38,66 @@ bool DTClassifier::predict(const Eigen::VectorXf & feature,
     }
     prob.maxCoeff(&pred);
     return true;
+}
+
+Eigen::VectorXd DTClassifier::measureVariableImportance(const vector<Eigen::VectorXf> & features,
+                                                        const vector<int> & labels)
+{
+    assert(features.size() == labels.size());
+    assert(trees_.size() > 0);
+    
+    const int dims = (int)features[0].size();
+    const int category_num = tree_param_.category_num_;
+    const int n = (int)features.size();
+    Eigen::VectorXd vp = Eigen::VectorXd::Zero(dims, 1);
+    
+    // step 1: prediction using original data
+    vector<int> predictions;
+    for (int i = 0; i<features.size(); i++) {
+        int pred = 0;
+        this->predict(features[i], pred);
+        predictions.push_back(pred);
+    }
+    assert(predictions.size() == labels.size());
+    Eigen::MatrixXd confusion = DTUtil::confusionMatrix<int>(predictions, labels, category_num, false);
+    Eigen::VectorXd accuracy  = DTUtil::accuracyFromConfusionMatrix(confusion);
+    assert(accuracy.size() == category_num + 1);
+    
+    double org_acc = accuracy[category_num];
+    vector<double> one_dim_values(n);
+    DTRandom rnd_generator;
+    for (int d = 0; d < dims; d++) {
+        vector<Eigen::VectorXf> modified_features = features;
+        for (int i = 0; i<n; i++) {
+            one_dim_values[i] = features[i][d];
+        }
+        double min_v = *std::min_element(one_dim_values.begin(), one_dim_values.end());
+        double max_v = *std::max_element(one_dim_values.begin(), one_dim_values.end());
+        vector<double> rand_values =rnd_generator.getRandomNumbers(min_v, max_v, n);
+        
+        // permuate feature by randomly generated values
+        for (int i = 0; i<n; i++) {
+            modified_features[i][d] = (float)rand_values[i];
+        }
+        
+        // prediction using new feature
+        vector<int> predictions;
+        for (int i = 0; i<n; i++) {
+            int pred = 0;
+            this->predict(modified_features[i], pred);
+            predictions.push_back(pred);
+        }
+        assert(predictions.size() == labels.size());
+        Eigen::MatrixXd confusion = DTUtil::confusionMatrix<int>(predictions, labels, category_num, false);
+        Eigen::VectorXd accuracy  = DTUtil::accuracyFromConfusionMatrix(confusion);
+        assert(accuracy.size() == category_num + 1);
+        
+        // measure accuracy (not always) decresement
+        double cur_acc = accuracy[category_num];
+        vp[d] = org_acc - cur_acc;
+    }
+    
+    return vp;
 }
 
 bool DTClassifier::save(const char *fileName) const
