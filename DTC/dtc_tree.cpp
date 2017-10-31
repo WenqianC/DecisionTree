@@ -22,6 +22,9 @@ bool DTCTree::buildTree(const vector<VectorXf> & features,
     assert(features.size() == labels.size());
     assert(indices.size() <= features.size());
     
+    int max_label = *std::max_element(labels.begin(), labels.end());
+    assert(max_label + 1 <= param.category_num_);
+    
     tree_param_ = param;
     root_ = new Node(0);
     
@@ -234,7 +237,7 @@ bool DTCTree::predict(const Eigen::VectorXf & feature,
 }
 
 bool DTCTree::predict(const Eigen::VectorXf & feature,
-                      unsigned int & pred) const
+                      int & pred) const
 {
     Eigen::VectorXf prob;
     bool isPred = this->predict(feature, prob);
@@ -243,6 +246,20 @@ bool DTCTree::predict(const Eigen::VectorXf & feature,
     }
     prob.maxCoeff(&pred);
     return true;    
+}
+
+bool DTCTree::analyzePrediction(const vector<Eigen::VectorXf> & train_features,
+                                const vector<int> & train_indices,
+                                const Eigen::VectorXf & valid_feature,
+                                Eigen::VectorXf & prob,
+                                vector<int> & train_indices_in_leaf)
+{
+    assert(train_features.size() >= train_indices.size());
+   
+    
+    this->analyzePredictionImpl(root_, train_features, train_indices, valid_feature, prob, train_indices_in_leaf);    
+    
+    return train_indices_in_leaf.size() != 0;
 }
 
 
@@ -279,6 +296,62 @@ bool DTCTree::predict(const NodePtr node,
         printf("Warning: prediction can not find proper split value\n");
         return false;
     }
+}
+
+bool DTCTree::analyzePredictionImpl(const NodePtr node,
+                                    const vector<Eigen::VectorXf> & train_features,                                    
+                                    const vector<int> & train_indices,
+                                    const Eigen::VectorXf & valid_feature,
+                                    Eigen::VectorXf & prob,
+                                    vector<int> & train_indices_in_leaf)
+{
+    assert(node);
+    if (node->is_leaf_) {
+        prob = node->prob_;
+        train_indices_in_leaf = train_indices;
+        if (train_indices_in_leaf.size() == 0) {
+            printf("warning: number of training example in leaf node is Zero. Might be a bug in training data!");
+        }
+        return true;
+    }
+    
+    const double threshold = node->split_param_.threshold_;
+    // split training data into left and right sub-trees
+    vector<int> left_indices;
+    vector<int> right_indices;
+    for (int i = 0; i<train_indices.size(); i++) {
+        const int index = train_indices[i];
+        assert(index >= 0 && index < train_features.size());
+        double cur_feat = train_features[index][node->split_param_.dim_];
+        if (cur_feat < threshold) {
+            left_indices.push_back(index);
+        }
+        else {
+            right_indices.push_back(index);
+        }
+    }
+    assert(left_indices.size() + right_indices.size() == train_indices.size());
+    
+    const double feat = valid_feature[node->split_param_.dim_];
+    // send part of train index to sub-trees
+    if (feat < node->split_param_.threshold_ && node->left_child_) {
+        return this->analyzePredictionImpl(node->left_child_, train_features,
+                                           left_indices, valid_feature,
+                                           prob, train_indices_in_leaf);
+    }
+    else if (node->right_child_)
+    {
+        return this->analyzePredictionImpl(node->right_child_, train_features,
+                                           right_indices, valid_feature,
+                                           prob, train_indices_in_leaf);
+    }
+    else
+    {
+        printf("Warning: prediction analization can not find proper split value\n");
+        return false;
+    }
+    
+    return true;
 }
 
 // read/write tree

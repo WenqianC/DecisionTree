@@ -79,7 +79,7 @@ int main(int argc, const char * argv[])
     DTClassifierBuilder builder;
     builder.setTreeParameter(tree_param);
     
-    DTClassifer model;
+    DTClassifier model;
     builder.buildModel(model, features, labels, valid_features, valid_labels, save_file);
     
     model.save(save_file);

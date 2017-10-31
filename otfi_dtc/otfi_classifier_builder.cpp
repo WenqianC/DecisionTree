@@ -38,9 +38,12 @@ void OTFIClassifierBuilder::buildModel(OTFIClassifier & model,
     model.tree_param_ = tree_param_;
     model.trees_.clear();   // @todo release memory
     model.feature_dim_ = (int)features[0].size();    
-    
+   
+    int max_label = *std::max_element(labels.begin(), labels.end());
     const int tree_num = tree_param_.tree_num_;
     const int category_num = tree_param_.category_num_;
+    assert(max_label + 1 <= category_num);
+    
     for (int n = 0; n<tree_num; n++) {
         // Step 1. out of bag sampling
         vector<int> training_indices;

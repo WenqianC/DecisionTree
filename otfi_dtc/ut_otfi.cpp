@@ -160,14 +160,16 @@ void test_otfi_single_tree()
         predictions[i] = pred;
     }
     
-    Eigen::MatrixXd conf = DTUtil::confusionMatrix<int>(mdata_labels, predictions, 2, true);
+    Eigen::MatrixXd conf = DTUtil::confusionMatrix<int>(predictions, mdata_labels, 2, true);
     cout<<"confusion matrix (no missing data): \n"<<conf<<endl<<endl;
 
     const float missing_mask = std::numeric_limits<float>::max();
     int dims = (int)mdata_features[0].size();
     for (int i = 0;  i<mdata_features.size(); i++){
-        int d = rand()%dims;
-        mdata_features[i][d] = missing_mask;
+        for (int k = 0; k<4; k++) {
+            int d = rand()%dims;
+            mdata_features[i][d] = missing_mask;
+        }
     }
     
     for (int i =0 ; i<mdata_features.size(); i++) {
@@ -176,22 +178,31 @@ void test_otfi_single_tree()
         predictions[i] = pred;
     }
     
-    conf = DTUtil::confusionMatrix<int>(mdata_labels, predictions, 2, true);
+    conf = DTUtil::confusionMatrix<int>(predictions, mdata_labels, 2, true);
     cout<<"confusion matrix (missing data): \n"<<conf<<endl<<endl;
 
     vector<float> weight(mdata_features.size(), 0);
+    vector<Eigen::VectorXf> imputed_feature = mdata_features;
     tree.imputeFeature(features, labels, indices,
-                       mdata_labels, mdata_indices, missing_mask,
-                       mdata_features, weight);
+                       mdata_features, mdata_labels, mdata_indices,
+                       missing_mask,
+                       imputed_feature, weight);
     
-    for (int i =0 ; i<mdata_features.size(); i++) {
-        int pred = 0;
-        tree.predict(mdata_features[i], pred);
-        predictions[i] = pred;
+    float weight_threshold = 0.6;
+    vector<int> sub_set_label;
+    vector<int> sub_set_prediction;
+    for (int i =0 ; i<imputed_feature.size(); i++) {
+        if (weight[i] > weight_threshold) {
+            int pred = 0;
+            tree.predict(imputed_feature[i], pred);
+            sub_set_label.push_back(mdata_labels[i]);
+            sub_set_prediction.push_back(pred);
+        }
     }
     
-    conf = DTUtil::confusionMatrix<int>(mdata_labels, predictions, 2, true);
-    cout<<"confusion matrix (imputed data): \n"<<conf<<endl<<endl;
+    conf = DTUtil::confusionMatrix<int>(sub_set_prediction, sub_set_label, 2, true);
+    cout<<"confusion matrix (imputed data): \n"<<conf<<endl;
+    cout<<"prediction percentage is "<<1.0*sub_set_label.size()/mdata_labels.size();
 }
 
 void test_otfi_multiple_trees()
@@ -234,7 +245,7 @@ void test_otfi_multiple_trees()
             model.predict(mdata_features[i], pred);
             predictions[i] = pred;
         }
-        Eigen::MatrixXd conf = DTUtil::confusionMatrix<int>(mdata_labels, predictions, category_num, true);
+        Eigen::MatrixXd conf = DTUtil::confusionMatrix<int>(predictions, mdata_labels, category_num, true);
         //cout<<"confusion matrix (no missing data): \n"<<conf<<endl<<endl;
         
         conf_org += conf;
@@ -255,7 +266,7 @@ void test_otfi_multiple_trees()
             predictions[i] = pred;
         }
         
-        conf = DTUtil::confusionMatrix<int>(mdata_labels, predictions, category_num, true);
+        conf = DTUtil::confusionMatrix<int>(predictions, mdata_labels, category_num, true);
         //cout<<"confusion matrix (missing data): \n"<<conf<<endl<<endl;
         conf_miss += conf;
         

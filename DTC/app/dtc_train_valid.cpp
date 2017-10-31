@@ -79,7 +79,6 @@ static void readFramenumberFeatureLabel(const char * feature_mat_file,
 
 int main(int argc, const char * argv[])
 {
-    /*
     if (argc != 9) {
         printf("argc is %d, should be 9 .\n", argc);
         help();
@@ -94,9 +93,9 @@ int main(int argc, const char * argv[])
     const char *param_file = argv[6];
     const char *model_file = argv[7];
     const char *result_file = argv[8];
-     */
     
     
+    /*
     const char *train_feature_file = "/Users/jimmy/Desktop/DTC_10_fold/data/trainX.mat";
     const char *train_label_file   = "/Users/jimmy/Desktop/DTC_10_fold/data/trainY.mat";
     const char *valid_feature_file = "/Users/jimmy/Desktop/DTC_10_fold/data/testX.mat";
@@ -105,6 +104,7 @@ int main(int argc, const char * argv[])
     const char *param_file = "/Users/jimmy/Desktop/DTC_10_fold/dtc_tree_param.txt";
     const char *model_file = "model.txt";
     const char *result_file = "result.mat";
+     */
     
     
     assert(use_valid_data == 0 || use_valid_data == 1);

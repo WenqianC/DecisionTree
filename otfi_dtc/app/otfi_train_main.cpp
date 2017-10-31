@@ -63,6 +63,13 @@ int main(int argc, const char * argv[])
     const char *tree_param_file = argv[3];
     const char *save_file = argv[4];
     
+    /*
+    const char *feature_file = "/Users/jimmy/Desktop/Imputation_RF/main_aux_feature_2.mat";
+    const char *label_file = "/Users/jimmy/Desktop/Imputation_RF/main_aux_label_2.mat";
+    const char *tree_param_file = "/Users/jimmy/Desktop/Imputation_RF/imputation_tree_param.txt";
+    const char *save_file = "debug.txt";
+     */
+    
     // read feature, label
     vector<VectorXf> features;
     vector<int> labels;

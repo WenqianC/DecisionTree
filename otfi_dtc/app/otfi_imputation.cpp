@@ -23,7 +23,6 @@
 
 using namespace::std;
 
-
 static void help()
 {
     printf("program          featureFile labelFile modelFile     featureFile_1       labelFile_2  saveFile \n");
@@ -66,6 +65,7 @@ static bool isSameValue(const float v1, const float v2)
 
 int main(int argc, const char * argv[])
 {
+    
     if (argc != 7) {
         printf("argc is %d, should be 7.\n", argc);
         help();
@@ -78,13 +78,13 @@ int main(int argc, const char * argv[])
     const char *missing_feature_file = argv[4];
     const char *missing_label_file = argv[5];
     const char *save_file = argv[6];
-     
+    
     /*
-    const char *feature_file = "/Users/jimmy/Desktop/Imputation_RF/x_train.mat";
-    const char *label_file = "/Users/jimmy/Desktop/Imputation_RF/y_train.mat";
+    const char *feature_file = "/Users/jimmy/Desktop/Imputation_RF/main_aux_feature_2.mat";
+    const char *label_file = "/Users/jimmy/Desktop/Imputation_RF/main_aux_label_2.mat";
     const char *model_file = "/Users/jimmy/Desktop/Imputation_RF/model/debug.txt";
-    const char *missing_feature_file = "/Users/jimmy/Desktop/Imputation_RF/x_test_missing.mat";
-    const char *missing_label_file = "/Users/jimmy/Desktop/Imputation_RF/y_test.mat";
+    const char *missing_feature_file = "/Users/jimmy/Desktop/Imputation_RF/aux_incomplete_feature.mat";
+    const char *missing_label_file = "/Users/jimmy/Desktop/Imputation_RF/aux_incomplete_label.mat";
     const char *save_file = "imputed_feature.mat";
      */
     
@@ -125,25 +125,32 @@ int main(int argc, const char * argv[])
             predictions.push_back(pred);
         }
         
-        Eigen::MatrixXd conf = DTUtil::confusionMatrix<int>(missing_labels, predictions, category_num, true);
+        Eigen::MatrixXd conf = DTUtil::confusionMatrix<int>(predictions, missing_labels, category_num, true);
         cout<<"confusion matrix (before imputation): \n"<<conf<<endl;
-        cout<<"precision: "<<DTUtil::precisionFromConfusionMatrix(conf).transpose()<<endl<<endl;
+        cout<<"accuray: "<<DTUtil::precisionFromConfusionMatrix(conf).transpose()<<endl<<endl;
     }
     
     model.imputeFeature(features, labels, missing_features, missing_labels, missing_mask);
     
     // test after imputation
+    Eigen::MatrixXd prediction_mask((int)missing_features.size(), 1);
     {
         vector<int> predictions;
         for (int i =0 ; i<missing_features.size(); i++) {
             int pred = 0;
             model.predict(missing_features[i], pred);
             predictions.push_back(pred);
+            if (pred == missing_labels[i]) {
+                prediction_mask(i, 0) = 1;
+            }
+            else {
+                prediction_mask(i, 0) = 0;
+            }
         }
         
-        Eigen::MatrixXd conf = DTUtil::confusionMatrix<int>(missing_labels, predictions, category_num, true);
+        Eigen::MatrixXd conf = DTUtil::confusionMatrix<int>(predictions, missing_labels, category_num, true);
         cout<<"confusion matrix (after imputation): \n"<<conf<<endl;
-        cout<<"precision: "<<DTUtil::precisionFromConfusionMatrix(conf).transpose()<<endl<<endl;
+        cout<<"accuray: "<<DTUtil::precisionFromConfusionMatrix(conf).transpose()<<endl<<endl;
     }
     
     // save imputed feature
@@ -155,7 +162,14 @@ int main(int argc, const char * argv[])
             imputed_feature(i, j) = missing_features[i][j];
         }
     }
-    matio::writeMatrix<Eigen::MatrixXd>(save_file, "feature", imputed_feature);
+  
+    vector<string> var_name;
+    vector<Eigen::MatrixXd> var_data;
+    var_name.push_back("feature");
+    var_name.push_back("prediction_mask");
+    var_data.push_back(imputed_feature);
+    var_data.push_back(prediction_mask);
+    matio::writeMultipleMatrix<Eigen::MatrixXd>(save_file, var_name, var_data);
     
     return 0;
 }

@@ -18,6 +18,7 @@
 
 using std::vector;
 using Eigen::VectorXf;
+using Eigen::VectorXi;
 
 
 // decision tree classifier Tree
@@ -85,7 +86,18 @@ public:
                  Eigen::VectorXf & prob) const;
     
     bool predict(const Eigen::VectorXf & feature,
-                 unsigned int & pred) const;
+                 int & pred) const;
+    
+    // analyze prediction using record the index of training examples
+    // in the leaf node
+    // train_ids: training example ids
+    // train_ids_in_leaf: training example ids that reach the same leaf node.
+    // It can be accumulative
+    bool analyzePrediction(const vector<Eigen::VectorXf> & train_features,
+                           const vector<int> & train_indices,
+                           const Eigen::VectorXf & valid_feature,                           
+                           Eigen::VectorXf & prob,
+                           vector<int> & train_indices_in_leaf);
     
     const TreeParameter & getTreeParameter(void) const;
     void setTreeParameter(const TreeParameter & param);
@@ -111,7 +123,16 @@ private:
     
     bool predict(const NodePtr node,
                  const Eigen::VectorXf & feature,
-                 Eigen::VectorXf & prob) const;   
+                 Eigen::VectorXf & prob) const;
+    
+    
+    bool analyzePredictionImpl(const NodePtr node,
+                               const vector<Eigen::VectorXf> & train_features,                               
+                               const vector<int> & train_indices,
+                               const Eigen::VectorXf & valid_feature,
+                               Eigen::VectorXf & prob,
+                               vector<int> & train_indices_in_leaf);
+                           
     
     
     // read/write

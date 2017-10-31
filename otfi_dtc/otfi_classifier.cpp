@@ -65,11 +65,13 @@ bool OTFIClassifier::imputeFeature(const vector<Eigen::VectorXf> & features,
         imputed_features[i] = mdata_features;
         imputation_weight[i] = vector<float>(mdata_num, 0);
         trees_[i]->imputeFeature(features, labels, indices, 
-                                 mdata_labels, mdata_indices, mdata_mask, 
+                                 mdata_features, mdata_labels, mdata_indices, mdata_mask,
                                  imputed_features[i], imputation_weight[i]);        
     }
 
     // average imputation
+    int zero_wt_num = 0;
+    const int dims = (int)mdata_features[0].size();
     for(int i = 0; i<mdata_num; i++) {        
         // feature dimension
         for(int d = 0; d<mdata_features[i].size(); d++) {
@@ -80,8 +82,11 @@ bool OTFIClassifier::imputeFeature(const vector<Eigen::VectorXf> & features,
                     wt += imputation_weight[k][i];
                     value += imputed_features[k][i][d] * imputation_weight[k][i];
                 }
+                //printf("imputation weight is %lf\n", wt);
                 if (wt == 0.0f) {
                     // randomly choose one tree imputation result
+                    //printf("warning: imputatin weight is 0\n");
+                    zero_wt_num++;
                     mdata_features[i][d] = imputed_features[rand()%tree_num][i][d];
                 }
                 else {
@@ -90,7 +95,8 @@ bool OTFIClassifier::imputeFeature(const vector<Eigen::VectorXf> & features,
                 }
             } 
         }
-    }  
+    }
+    printf("zero weight percentage is %lf\n", 1.0*zero_wt_num/(mdata_num*dims));
 
     return true;
 }

@@ -248,18 +248,24 @@ bool OTFITree::setLeafNode(const vector<Eigen::VectorXf> & features,
 }
 
 bool OTFITree::imputeFeature(const vector<Eigen::VectorXf> & features,
-                      const vector<int> & labels,
-                      const vector<int> & indices,                      
-                      const vector<int> & mdata_labels,
-                      const vector<int> & mdata_indices,
-                      const float mdata_mask,
-                      vector<Eigen::VectorXf> & mdata_features,  // output
-                      vector<float>& weight) const
+                             const vector<int> & labels,
+                             const vector<int> & indices,
+                             
+                             const vector<Eigen::VectorXf> & mdata_features,
+                             const vector<int> & mdata_labels,
+                             const vector<int> & mdata_indices,
+                             const float mdata_mask,
+                             vector<Eigen::VectorXf> & imputed_features, // output
+                             vector<float>& weight) const
 {
     assert(root_);
+    assert(mdata_features.size() == mdata_labels.size());
+    assert(imputed_features.size() == mdata_features.size());
+    assert(imputed_features.size() == weight.size());
+    
     return this->imputeFeatureImpl(root_, features, labels, indices, 
-                                   mdata_labels, mdata_indices, mdata_mask,
-                                   mdata_features, weight);
+                                   mdata_features, mdata_labels, mdata_indices, mdata_mask,
+                                   imputed_features, weight);
 }
 
 
@@ -272,11 +278,14 @@ static bool isSameValue(const float v1, const float v2)
 bool OTFITree::imputeFeatureImpl(const NodePtr node,
                                  const vector<Eigen::VectorXf> & features,
                                  const vector<int> & labels,
-                                 const vector<int> & indices,                                   
+                                 const vector<int> & indices,
+                                 
+                                 const vector<Eigen::VectorXf> & mdata_features,
                                  const vector<int> & mdata_labels,
                                  const vector<int> & mdata_indices,
+                                 
                                  const float mdata_mask,
-                                 vector<Eigen::VectorXf> & mdata_features,
+                                 vector<Eigen::VectorXf> & imputed_features,
                                  vector<float>& weight) const
 {
     assert(node);
@@ -285,17 +294,19 @@ bool OTFITree::imputeFeatureImpl(const NodePtr node,
         // mean value of features
         Eigen::VectorXf feat_mean = DTUtil::mean<Eigen::VectorXf>(features, indices);
         
-        // @using a weighted version,
+        // using a weighted version,
         for (int i = 0; i<mdata_indices.size(); i++) {
             int index = mdata_indices[i];
             int label = mdata_labels[index];
             assert(label >= 0 && label < node->prob_.size());
             assert(mdata_features[index].size() == feat_mean.size());
-            for (int d = 0; d< feat_mean.size(); d++) {
+            
+            // loop each dimension
+            for (int d = 0; d < feat_mean.size(); d++) {
                 // the missing value has same value as mdata_mask
                 if (isSameValue(mdata_features[index][d],  mdata_mask)) {
-                    mdata_features[index][d] = feat_mean[d];
-                    weight[index] = node->prob_[label];
+                    imputed_features[index][d] = feat_mean[d];
+                    weight[index] = node->prob_[label];                    
                 }
             }
         }
@@ -343,17 +354,17 @@ bool OTFITree::imputeFeatureImpl(const NodePtr node,
     if (mdata_left_indices.size() > 0) {
         this->imputeFeatureImpl(node->left_child_,
                                 features, labels, left_indices,
-                                mdata_labels, mdata_left_indices,
+                                mdata_features, mdata_labels, mdata_left_indices,
                                 mdata_mask,
-                                mdata_features, weight);
+                                imputed_features, weight);
     }
     
     if (mdata_right_indices.size() > 0) {
         this->imputeFeatureImpl(node->right_child_,
                                 features, labels, right_indices,
-                                mdata_labels, mdata_right_indices,
+                                mdata_features, mdata_labels, mdata_right_indices,
                                 mdata_mask,
-                                mdata_features, weight);
+                                imputed_features, weight);
     }
     
     return true;

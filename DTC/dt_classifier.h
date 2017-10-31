@@ -30,8 +30,19 @@ public:
                  int & pred);
     
     // measure variable importance
+    // return: accuracy decresment of one variable is replaced by random values
     Eigen::VectorXd measureVariableImportance(const vector<Eigen::VectorXf> & features,
                                               const vector<int> & labels);
+    
+    // get contritueing training example indices
+    // simulate_oob_sampling: simulate out of bagging sample, default true
+    // pred: predicted label
+    // contributing_example_index: may have duplicated indices
+    bool getContributingExamples(const vector<Eigen::VectorXf> & training_features,
+                                 const Eigen::VectorXf & valid_feature,
+                                 const bool simulate_oob_sampling,
+                                 int & pred,
+                                 vector<int> & contributing_example_index);
     
     bool save(const char *fileName) const;
     bool load(const char *fileName);

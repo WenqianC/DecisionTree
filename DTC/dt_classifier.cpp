@@ -100,6 +100,42 @@ Eigen::VectorXd DTClassifier::measureVariableImportance(const vector<Eigen::Vect
     return vp;
 }
 
+bool DTClassifier::getContributingExamples(const vector<Eigen::VectorXf> & training_features,
+                                           const Eigen::VectorXf & valid_feature,
+                                           const bool simulate_oob_sampling,
+                                           int & pred,
+                                           vector<int> & contributing_example_index)
+                             
+{
+    assert(trees_.size() > 0);
+    assert(tree_param_.feature_dimension_ == valid_feature.size());
+   
+    DTRandom rng;
+    const int n = (int)training_features.size();
+    Eigen::VectorXf prob = Eigen::VectorXf::Zero(tree_param_.category_num_);
+    for (int i = 0; i<trees_.size(); i++) {
+        // simulate out-of-bag sampling
+        vector<int> training_indices;
+        if (simulate_oob_sampling) {
+            vector<int> validation_indices;
+            rng.outofBagSample<int>(n, training_indices, validation_indices);
+        }
+        else {
+            training_indices = dt::range<int>(1, (int)training_features.size(), 1);
+        }
+        
+        Eigen::VectorXf cur_prob;
+        trees_[i]->analyzePrediction(training_features, training_indices, valid_feature, cur_prob, contributing_example_index);
+        prob += cur_prob;
+    }
+    prob /= trees_.size();
+    prob.maxCoeff(&pred);
+    
+    std::sort(contributing_example_index.begin(), contributing_example_index.end());
+    
+    return contributing_example_index.size() != 0;
+}
+
 bool DTClassifier::save(const char *fileName) const
 {
     assert(trees_.size() > 0);

@@ -59,10 +59,47 @@ namespace dt {
         }
     }
     
+    template <class intType>
+    vector<intType> balanceSamples(const vector<intType> & example_indices, const vector<intType> & labels, const int category_num)
+    {
+        assert(example_indices.size() <= labels.size());
+        
+        // step 1: count example numbers in each category
+        vector<intType> count(category_num, 0);
+        for (int i = 0; i<example_indices.size(); i++) {
+            intType idx = example_indices[i];
+            count[labels[idx]]++;
+        }
+        intType min_count = *std::min_element(count.begin(), count.end());
+        assert(min_count >= 0);
+        
+        // step 2: select the first min_count example in each category
+        count = vector<int>(category_num, 0);
+        vector<intType> balanced_indices;
+        for (int i = 0; i<example_indices.size(); i++) {
+            intType idx = example_indices[i];
+            intType cur_label = labels[idx];
+            
+            // skip this category
+            if (count[cur_label] >= min_count) {
+                continue;
+            }
+            else {
+                balanced_indices.push_back(idx);
+                count[cur_label]++;
+            }
+        }
+        
+        return balanced_indices;
+    }
+    
     template vector<int> randomDimension(int dim, int num);
     
     template void meanStd(const vector<Eigen::VectorXd> & labels, Eigen::VectorXd & mean, Eigen::VectorXd & sigma);
     template void meanStd(const vector<Eigen::Vector3d> & labels, Eigen::Vector3d & mean, Eigen::Vector3d & sigma);
+    
+    template
+    vector<int> balanceSamples(const vector<int> & example_indices, const vector<int> & labels, const int category_num);
 }
 
 

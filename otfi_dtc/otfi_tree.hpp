@@ -60,11 +60,13 @@ public:
     bool imputeFeature(const vector<Eigen::VectorXf> & features,
                        const vector<int> & labels,
                        const vector<int> & indices,
+                       
+                       const vector<VectorXf> & mdata_features,
                        const vector<int> & mdata_labels,
                        const vector<int> & mdata_indices,
                        const float mdata_mask,
-                       vector<Eigen::VectorXf> & mdata_features,  // output
-                       vector<float> & weight) const; // output
+                       vector<Eigen::VectorXf> & imputed_features,  // input output
+                       vector<float> & weight) const; // input output
         
     bool predict(const Eigen::VectorXf & feature,
                  int & pred) const;
@@ -94,14 +96,18 @@ private:
                            vector<int> & right_indices);
     
     bool imputeFeatureImpl(const NodePtr node,
-                const vector<Eigen::VectorXf> & features,
-                const vector<int> & labels,
-                const vector<int> & indices,               
-                const vector<int> & mdata_labels,
-                const vector<int> & mdata_indices,
-                const float mdata_mask,
-                vector<Eigen::VectorXf> & mdata_features,  // output
-                vector<float> & weight) const; // output
+                           const vector<Eigen::VectorXf> & features,
+                           const vector<int> & labels,
+                           const vector<int> & indices,
+                           
+                           const vector<Eigen::VectorXf> & mdata_features,
+                           const vector<int> & mdata_labels,
+                           const vector<int> & mdata_indices,
+                           const float mdata_mask,
+                           
+                           vector<Eigen::VectorXf> & imputed_features,  // output
+                           vector<float> & weight) const; // output
+                
     
     bool predictImpl(const NodePtr node,
                      const Eigen::VectorXf & feature,

@@ -45,6 +45,25 @@ vector<double> DTRandom::getRandomNumbers(const double min_v, const double max_v
 }
 
 template <class integerT>
+void DTRandom::outofBagSample(const unsigned int N,
+                    vector<integerT> & bootstrapped,
+                    vector<integerT> & outof_bag)
+{
+    vector<bool> isPicked(N, false);
+    for (int i = 0; i<N; i++) {
+        integerT idx = rnd_generator_->lrand32(0, N-1);
+        bootstrapped.push_back(idx);
+        isPicked[idx] = true;
+    }
+    
+    for (int i = 0; i<N; i++) {
+        if (!isPicked[i]) {
+            outof_bag.push_back(i);
+        }
+    }
+}
+
+template <class integerT>
 void DTRandom::outofBagSampling(const unsigned int N,
                                   vector<integerT> & bootstrapped,
                                   vector<integerT> & outof_bag)
@@ -88,6 +107,11 @@ DTRandom::randomNumber(const double min_v, const double max_v)
     return rnd.drand32(min_v, max_v);
 }
  */
+
+template
+void DTRandom::outofBagSample(const unsigned int N,
+                              vector<int> & bootstrapped,
+                              vector<int> & outof_bag);
 
 template
 void DTRandom::outofBagSampling(const unsigned int N,

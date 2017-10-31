@@ -34,14 +34,21 @@ bool DTClassifierBuilder::buildModel(DTClassifier & model,
     model.trees_.clear();
     const int tree_num = tree_param_.tree_num_;
     const int category_num = tree_param_.category_num_;
+    const bool is_balance = tree_param_.balanced_example_;
     const int N = (int)features.size();
     
-    for (int n = 0; n<tree_num; n++) {
+    DTRandom rng;
+    for (int n = 0; n<tree_num; n++) {        
         // bagging
         vector<int> training_indices;
         vector<int> validation_indices;
-        DTRandom::outofBagSampling<int>(N, training_indices, validation_indices);
-        
+        rng.outofBagSample<int>(N, training_indices, validation_indices);
+                
+        if (is_balance) {
+            vector<int> balanced_indices = dt::balanceSamples<int>(training_indices, labels, category_num);
+            printf("balanced example vs unbalanced example ratio: %lf\n", 1.0*balanced_indices.size()/training_indices.size());
+            training_indices = balanced_indices;
+        }
         DTCTree * tree = new DTCTree();
         assert(tree);
         double tt = clock();

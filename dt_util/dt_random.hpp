@@ -23,6 +23,10 @@ public:
     
     vector<double> getRandomNumbers(const double min_v, const double max_v, int num) const;
     
+    template <class integerT>
+    void outofBagSample(const unsigned int N,
+                                 vector<integerT> & bootstrapped,
+                                 vector<integerT> & outof_bag);
     
     
 public:
