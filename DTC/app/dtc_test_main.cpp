@@ -73,7 +73,7 @@ int main(int argc, const char * argv[])
     printf("category number is %d\n", category_num);
     
     // load model
-    DTClassifer model;
+    DTClassifier model;
     bool is_read = model.load(model_file);
     assert(is_read);
     
@@ -97,8 +97,7 @@ int main(int argc, const char * argv[])
         result(i, 0) = labels[i];
         result(i, 1) = (int)predictions[i];
     }
-    
-    //DTUtil_IO::save_matrix<MatrixXi>(save_file, result);
+        
     matio::writeMatrix<Eigen::MatrixXd>(save_file, "ground_truth_prediction", result);
     return 0;
 }

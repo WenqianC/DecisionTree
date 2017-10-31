@@ -24,11 +24,12 @@ private:
 public:
     void setTreeParameter(const DTCTreeParameter & param);
     
+    // valid --> validation
     bool buildModel(DTClassifier & model,
                     const vector<VectorXf> & features,
                     const vector<int> & labels,
-                    const vector<VectorXf> & valid_features,
-                    const vector<int>& valid_labels,
+                    const vector<VectorXf> & validation_features,
+                    const vector<int>& validation_labels,
                     const char * model_file_name = NULL) const;
     
     //features: a group of features, each group is from a single image

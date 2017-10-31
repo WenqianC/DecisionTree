@@ -95,7 +95,7 @@ public:
     // It can be accumulative
     bool analyzePrediction(const vector<Eigen::VectorXf> & train_features,
                            const vector<int> & train_indices,
-                           const Eigen::VectorXf & valid_feature,                           
+                           const Eigen::VectorXf & validation_feature,
                            Eigen::VectorXf & prob,
                            vector<int> & train_indices_in_leaf);
     

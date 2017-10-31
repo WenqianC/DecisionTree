@@ -267,6 +267,7 @@ void test_synthesized_data_contribute_training_example_multiple_tree()
                                  int & pred,
                                  vector<int> & contributing_example_index);
      */
+    
 
     vector<int> predictions;
     bool simulate_oob_sampling = true;

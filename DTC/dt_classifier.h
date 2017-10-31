@@ -39,7 +39,7 @@ public:
     // pred: predicted label
     // contributing_example_index: may have duplicated indices
     bool getContributingExamples(const vector<Eigen::VectorXf> & training_features,
-                                 const Eigen::VectorXf & valid_feature,
+                                 const Eigen::VectorXf & validation_feature,
                                  const bool simulate_oob_sampling,
                                  int & pred,
                                  vector<int> & contributing_example_index);
