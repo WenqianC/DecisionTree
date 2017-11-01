@@ -25,13 +25,14 @@ using namespace::std;
 
 static void help()
 {
-    printf("program                    trainFeatureFile  modelFile    testFeatureFile  testLabelFile  saveFile \n");
-    printf("DTC_contributing_analysis  train_feature.mat dt_model.txt test_feature.mat test_label.mat contributing_index.mat \n");
+    printf("program                    trainFeatureFile  modelFile    testFeatureFile  testLabelFile  mostCommon saveFile \n");
+    printf("DTC_contributing_analysis  train_feature.mat dt_model.txt test_feature.mat test_label.mat 0          contributing_index.mat \n");
     printf("Record contributing training example in the random forest.\n");
     printf("Node: out-of-bag example is simulated, not exactly the same as in training, but statistically be very similar.\n");
     printf("trainFeatureFile: .mat file has a 'feature' variable. \n");
     printf("testFeatureFile file: .mat file has a 'feature' variable. \n");
     printf("testLabelFile file:   .mat file has a 'label' variable. \n");
+    printf("mostCommon: 1 --> only save the most common index in leaf node. \n");
     printf("saveFile: .mat file has 'ground_truth_prediction' and 'contributing_train_index', (-1) for empty cell\n");
 }
 
@@ -72,8 +73,8 @@ static void readDataset(const char *feature_file,
 
 int main(int argc, const char * argv[])
 {
-    if (argc != 6) {
-        printf("argc is %d, should be 6.\n", argc);
+    if (argc != 7) {
+        printf("argc is %d, should be 7.\n", argc);
         help();
         return -1;
     }
@@ -83,7 +84,8 @@ int main(int argc, const char * argv[])
     
     const char *test_feature_file = argv[3];
     const char *test_label_file = argv[4];
-    const char *save_file = argv[5];
+    const bool most_common = ((int)strtod(argv[5], NULL) != 0);
+    const char *save_file = argv[6];
     
     // read training feature
     vector<VectorXf> train_features;
@@ -125,6 +127,22 @@ int main(int argc, const char * argv[])
     
     assert(predictions.size() == test_labels.size());
     assert(predictions.size() == cti.size());
+    
+    if (most_common) {
+        // only keep the most common index
+        for (int i = 0; i<cti.size(); i++) {
+            if (cti[i].size() > 0) {
+                int most_index = dt::mostCommon(cti[i]);
+                cti[i].resize(1);
+                cti[i][0] = most_index;
+            }
+            else {
+                cti[i].resize(1);
+                cti[i][0] = -1;
+            }
+        }
+        max_num_index = 1;
+    }
     
     // save result
     Eigen::MatrixXd result((int)predictions.size(), 2);

@@ -133,6 +133,9 @@ bool DTClassifier::getContributingExamples(const vector<Eigen::VectorXf> & train
     
     std::sort(contributing_example_index.begin(), contributing_example_index.end());
     
+    if (contributing_example_index.size() == 0) {
+        printf("Error: contributing example number is zero!\n");        
+    }
     return contributing_example_index.size() != 0;
 }
 

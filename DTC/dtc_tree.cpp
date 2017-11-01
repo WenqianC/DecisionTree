@@ -310,7 +310,7 @@ bool DTCTree::analyzePredictionImpl(const NodePtr node,
         prob = node->prob_;
         train_indices_in_leaf = train_indices;
         if (train_indices_in_leaf.size() == 0) {
-            printf("warning: number of training example in leaf node is Zero. Might be a bug in training data!");
+            printf("warning: number of training example in leaf node is Zero. Might be a bug in training data!\n");
         }
         return true;
     }

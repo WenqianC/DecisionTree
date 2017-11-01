@@ -43,6 +43,7 @@ public:
                                  const bool simulate_oob_sampling,
                                  int & pred,
                                  vector<int> & contributing_example_index);
+                                 
     
     bool save(const char *fileName) const;
     bool load(const char *fileName);

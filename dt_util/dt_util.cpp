@@ -9,9 +9,11 @@
 #include "dt_util.hpp"
 #include <Eigen/QR>
 #include <iostream>
+#include <map>
 
 using std::cout;
 using std::endl;
+using std::map;
 
 namespace dt {
     template< class T>
@@ -89,8 +91,24 @@ namespace dt {
                 count[cur_label]++;
             }
         }
-        
         return balanced_indices;
+    }
+    
+    template<class intType>
+    intType mostCommon(const vector<intType> & data)
+    {
+        assert(data.size() > 0);
+        int max_count = 0;
+        int most_common = 0;
+        std::map<intType, int> m;
+        for (auto vi = data.begin(); vi != data.end(); vi++) {
+            m[*vi]++;
+            if (m[*vi] > max_count) {
+                max_count = m[*vi];
+                most_common = *vi;
+            }
+        }
+        return most_common;
     }
     
     template vector<int> randomDimension(int dim, int num);
@@ -100,6 +118,9 @@ namespace dt {
     
     template
     vector<int> balanceSamples(const vector<int> & example_indices, const vector<int> & labels, const int category_num);
+    
+    template
+    int mostCommon(const vector<int> & data);
 }
 
 

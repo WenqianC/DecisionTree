@@ -47,7 +47,12 @@ namespace dt {
     // balance examples in each category
     // return: example indices with balanced training examples
     template<class intType>
-    vector<intType> balanceSamples(const vector<intType> & example_indices, const vector<intType> & labels, const int category_num);
+    vector<intType> balanceSamples(const vector<intType> & example_indices,
+                                   const vector<intType> & labels, const int category_num);
+    
+    // find most common number in the vector
+    template<class intType>
+    intType mostCommon(const vector<intType> & data);
 
     
 }  // namespace
