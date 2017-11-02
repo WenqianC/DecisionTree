@@ -67,7 +67,7 @@ bool DTRegressorBuilder::buildModel(DTRegressor & model,
             Eigen::VectorXf mean_error;
             Eigen::VectorXf median_error;
             dt::meanMedianError(oob_errors, mean_error, median_error);
-            cout<<"Out of bag mean error: "<<mean_error.transpose()<<"\nmedian error: "<<median_error.transpose()<<endl<<endl;
+            cout<<"Out of bag mean error: "<<mean_error.transpose()<<endl;//"\nmedian error: "<<median_error.transpose()<<endl<<endl;
         }
         
         if (validation_features.size() != 0) {
@@ -84,7 +84,7 @@ bool DTRegressorBuilder::buildModel(DTRegressor & model,
             Eigen::VectorXf mean_error;
             Eigen::VectorXf median_error;
             dt::meanMedianError(errors, mean_error, median_error);
-            cout<<"Validation mean error: "<<mean_error.transpose()<<"\nmedian error: "<<median_error.transpose()<<endl<<endl;
+            cout<<"Validation mean error: "<<mean_error.transpose()<<endl<<endl;//"\nmedian error: "<<median_error.transpose()<<endl<<endl;
         }
         if (model_file_name != NULL) {
             model.save(model_file_name);

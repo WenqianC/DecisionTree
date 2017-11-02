@@ -28,6 +28,9 @@ class DTRegressor
     TreeParameter tree_param_;
     
 public:
+    DTRegressor();
+    ~DTRegressor();
+    
     bool predict(const Eigen::VectorXf & feature,
                  Eigen::VectorXf & pred) const;
     

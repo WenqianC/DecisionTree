@@ -146,8 +146,6 @@ void test_dtr_multiple_trees()
     dt::meanMedianError(errors, mean_error, median_error);
     
     cout<<"mean error "<<mean_error<<" median error "<<median_error<<endl;
-
-    
 }
 
 

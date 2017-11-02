@@ -9,6 +9,20 @@
 #include "dt_regressor.h"
 #include "dt_util.hpp"
 
+DTRegressor::DTRegressor()
+{
+    
+}
+
+DTRegressor::~DTRegressor()
+{
+    for (int i = 0; i<trees_.size(); i++) {
+        if (trees_[i]) {
+            delete trees_[i];
+            trees_[i] = NULL;
+        }
+    }
+}
 
 bool DTRegressor::predict(const Eigen::VectorXf & feature,
                            Eigen::VectorXf & pred) const
