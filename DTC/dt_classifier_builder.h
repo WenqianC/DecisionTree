@@ -40,9 +40,6 @@ public:
                     const int max_num_frames,
                     const char * model_file_name = NULL) const;
     
-    
-    
-    
 };
 
 #endif /* defined(__Classifer_RF__DTClassifierBuilder__) */

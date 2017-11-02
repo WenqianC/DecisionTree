@@ -44,16 +44,26 @@ namespace dt {
     template <class vectorType>
     void meanStd(const vector<vectorType> & labels, vectorType & mean, vectorType & sigma);
     
+    template<class vectorType, class intType>
+    void meanStd(const vector<vectorType> & labels, const vector<intType> & indices,
+                 vectorType & mean, vectorType & sigma);
+    
     // balance examples in each category
     // return: example indices with balanced training examples
     template<class intType>
     vector<intType> balanceSamples(const vector<intType> & example_indices,
                                    const vector<intType> & labels, const int category_num);
     
+    // regression loss
+    template<class VectorType, class IntType>
+    double sumOfVariance(const vector<VectorType> & labels, const vector<IntType> & indices);
+    
     // find most common number in the vector
     template<class intType>
     intType mostCommon(const vector<intType> & data);
-
+    
+    template <class VectorType>
+    void meanMedianError(const vector<VectorType> & errors, VectorType & mean, VectorType & median);
     
 }  // namespace
 
@@ -92,8 +102,7 @@ public:
     static void rowMeanStddev(const vector<matrixType> & labels, const vector<unsigned int> & indices,
                               const int row_index, vectorType & mean,   vectorType & sigma);
     
-    template <class T>
-    static void meanMedianError(const vector<T> & errors, T & mean, T & median);
+   
     
     // https://en.wikipedia.org/wiki/Quartile
     // q1, q2, q3: first, second and third quartile. The second quartile is median

@@ -61,6 +61,39 @@ namespace dt {
         }
     }
     
+    template<class vectorType, class intType>
+    void meanStd(const vector<vectorType> & data, const vector<intType> & indices,
+                 vectorType & mean, vectorType & sigma)
+    {
+        assert(data.size() > 0);
+        assert(indices.size() > 0);
+        
+        assert(indices.size() > 0);
+        
+        mean = vectorType::Zero(data[0].size());
+        
+        for (int i = 0; i<indices.size(); i++) {
+            int index = indices[i];
+            assert(index >= 0 && index < data.size());
+            mean += data[index];
+        }
+        mean /= indices.size();
+        
+        sigma = vectorType::Zero(data[0].size());
+        if (indices.size() == 1) {
+            return;
+        }
+        for (int i = 0; i<indices.size(); i++) {
+            vectorType dif = data[indices[i]] - mean;
+            for (int j = 0; j<sigma.size(); j++) {
+                sigma[j] += dif[j] * dif[j];
+            }
+        }
+        for (int j = 0; j<sigma.size(); j++) {
+            sigma[j] = sqrt(fabs(sigma[j])/indices.size());
+        }
+    }
+    
     template <class intType>
     vector<intType> balanceSamples(const vector<intType> & example_indices, const vector<intType> & labels, const int category_num)
     {
@@ -94,6 +127,35 @@ namespace dt {
         return balanced_indices;
     }
     
+    template<class VectorType, class IntType>
+    double sumOfVariance(const vector<VectorType> & labels, const vector<IntType> & indices)
+    {
+        if (indices.size() <= 0) {
+            return 0.0;
+        }
+        assert(indices.size() > 0);
+        
+        VectorType mean = VectorType::Zero(labels[0].size());
+        
+        for (int i = 0; i<indices.size(); i++) {
+            IntType index = indices[i];
+            assert(index >= 0 && index < labels.size());
+            mean += labels[index];
+        }
+        mean /= indices.size();
+        
+        double var = 0.0;
+        for (int i = 0; i<indices.size(); i++) {
+            IntType index = indices[i];
+            assert(index >= 0 && index < labels.size());
+            VectorType dif = labels[index] - mean;
+            for (int j = 0; j<dif.size(); j++) {
+                var += dif[j] * dif[j];
+            }
+        }
+        return var;
+    }
+    
     template<class intType>
     intType mostCommon(const vector<intType> & data)
     {
@@ -111,16 +173,54 @@ namespace dt {
         return most_common;
     }
     
+    template <class T>
+    void meanMedianError(const vector<T> & errors,
+                                 T & mean,
+                                 T & median)
+    {
+        assert(errors.size() > 0);
+        const int dim = (int)errors[0].size();
+        mean = T::Zero(dim);
+        median = T::Zero(dim);
+        
+        vector<vector<double> > each_dim_data(dim);
+        for (int i = 0; i<errors.size(); i++) {
+            T err = errors[i].cwiseAbs();
+            mean += err;
+            for (int j = 0; j<err.size(); j++) {
+                each_dim_data[j].push_back(err[j]);
+            }
+        }
+        mean /= errors.size();
+        
+        for (int i = 0; i<each_dim_data.size(); i++) {
+            std::sort(each_dim_data[i].begin(), each_dim_data[i].end());
+            median[i] = each_dim_data[i][each_dim_data[i].size()/2];
+        }
+    }
+    
     template vector<int> randomDimension(int dim, int num);
     
     template void meanStd(const vector<Eigen::VectorXd> & labels, Eigen::VectorXd & mean, Eigen::VectorXd & sigma);
     template void meanStd(const vector<Eigen::Vector3d> & labels, Eigen::Vector3d & mean, Eigen::Vector3d & sigma);
     
+    template void meanStd(const vector<Eigen::VectorXf> & labels, const vector<int> & indices,
+                          Eigen::VectorXf & mean, Eigen::VectorXf & sigma);
+    
     template
     vector<int> balanceSamples(const vector<int> & example_indices, const vector<int> & labels, const int category_num);
     
     template
+    double sumOfVariance(const vector<Eigen::VectorXf> & labels, const vector<int> & indices);
+    
+    template
     int mostCommon(const vector<int> & data);
+    
+    template
+    void meanMedianError(const vector<Eigen::VectorXf> & errors, Eigen::VectorXf & mean, Eigen::VectorXf & median);
+    
+    template
+    void meanMedianError(const vector<Eigen::VectorXd> & errors, Eigen::VectorXd & mean, Eigen::VectorXd & median);
 }
 
 
@@ -363,31 +463,7 @@ void DTUtil::rowMeanStddev(const vector<matrixType> & labels, const vector<unsig
     }
 }
 
-template <class T>
-void DTUtil::meanMedianError(const vector<T> & errors,
-                                  T & mean,
-                                  T & median)
-{
-    assert(errors.size() > 0);
-    const int dim = (int)errors[0].size();
-    mean = T::Zero(dim);
-    median = T::Zero(dim);
-    
-    vector<vector<double> > each_dim_data(dim);
-    for (int i = 0; i<errors.size(); i++) {
-        T err = errors[i].cwiseAbs();
-        mean += err;
-        for (int j = 0; j<err.size(); j++) {
-            each_dim_data[j].push_back(err[j]);
-        }
-    }
-    mean /= errors.size();
-    
-    for (int i = 0; i<each_dim_data.size(); i++) {
-        std::sort(each_dim_data[i].begin(), each_dim_data[i].end());
-        median[i] = each_dim_data[i][each_dim_data[i].size()/2];
-    }
-}
+
 
 template<class vectorT>
 void DTUtil::quartileError(const vector<vectorT> & errors, vectorT& q1, vectorT& q2, vectorT& q3)
@@ -599,11 +675,7 @@ template void
 DTUtil::rowMeanStddev(const vector<Eigen::MatrixXf> & labels, const vector<unsigned int> & indices,
                       const int row_index, Eigen::VectorXf & mean, Eigen::VectorXf & sigma);
 
-template void
-DTUtil::meanMedianError(const vector<Eigen::VectorXf> & errors, Eigen::VectorXf & mean, Eigen::VectorXf & median);
 
-template void
-DTUtil::meanMedianError(const vector<Eigen::VectorXd> & errors, Eigen::VectorXd & mean, Eigen::VectorXd & median);
 
 template
 void DTUtil::quartileError(const vector<Eigen::VectorXf> & errors, Eigen::VectorXf& q1, Eigen::VectorXf& q2, Eigen::VectorXf& q3);
