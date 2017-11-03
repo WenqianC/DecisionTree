@@ -6,7 +6,7 @@
 //  Copyright (c) 2017 Nowhere Planet. All rights reserved.
 //
 
-#if 1
+#if 0
 #include <stdio.h>
 #include "dt_util_io.hpp"
 #include "mat_io.hpp"

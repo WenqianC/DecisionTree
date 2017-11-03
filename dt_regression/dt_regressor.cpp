@@ -60,7 +60,7 @@ bool DTRegressor::save(const char *fileName) const
     baseName = baseName.substr(0, baseName.size()-4);
     for (int i = 0; i<trees_.size(); i++) {
         char buf[1024] = {NULL};
-        sprintf(buf, "_%08d", i);
+        sprintf(buf, "_%06d", i);
         string fileName = baseName + string(buf) + string(".txt");
         fprintf(pf, "%s\n", fileName.c_str());
         tree_files.push_back(fileName);
