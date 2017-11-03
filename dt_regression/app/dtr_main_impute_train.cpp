@@ -6,8 +6,7 @@
 //  Copyright (c) 2017 Nowhere Planet. All rights reserved.
 //
 
-
-#if 1
+#if 0
 #include <stdio.h>
 #include "dt_util_io.hpp"
 #include "mat_io.hpp"
@@ -24,8 +23,8 @@ using Eigen::VectorXf;
 
 static void help()
 {
-    printf("program      trainXFile  trainYFile  DTParamFile   modelFile  \n");
-    printf("DTR_impute   train_x.mat train_y.mat dtr_param.txt model.txt \n");
+    printf("program            trainXFile  trainYFile  DTParamFile   modelFile  \n");
+    printf("DTR_impute_train   train_x.mat train_y.mat dtr_param.txt model.txt \n");
     printf("trainXFile: training feature file. .mat 'feature' \n");
     printf("trainYFile: training label file.   .mat 'label' \n");
     
@@ -92,7 +91,7 @@ static vector<string> generateSubmodelFiles(const char *model_file, const int di
 int main(int argc, const char * argv[])
 {
     if (argc != 5) {
-        printf("argc is %d, should be 9 .\n", argc);
+        printf("argc is %d, should be 5 .\n", argc);
         help();
         return -1;
     }
