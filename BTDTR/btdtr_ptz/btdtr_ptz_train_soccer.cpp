@@ -5,8 +5,7 @@
 //  Created by jimmy on 2017-07-28.
 //  Copyright (c) 2017 Nowhere Planet. All rights reserved.
 //
-
-#if 0
+#if 1
 #include <stdio.h>
 #include <iostream>
 #include "btdtr_ptz_builder.h"

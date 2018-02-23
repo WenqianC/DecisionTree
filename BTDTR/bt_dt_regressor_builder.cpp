@@ -57,7 +57,7 @@ bool BTDTRegressorBuilder::buildModel(BTDTRegressor & model,
         
         Eigen::VectorXf cv_mean_error;
         Eigen::VectorXf cv_median_error;
-        DTUtil::meanMedianError<Eigen::VectorXf>(cv_errors, cv_mean_error, cv_median_error);
+        dt::meanMedianError<Eigen::VectorXf>(cv_errors, cv_mean_error, cv_median_error);
         cout<<"cross validation mean error: "<<cv_mean_error.transpose()<<"\n median error: "<<cv_median_error.transpose()<<endl;
         if (model_file_name != NULL) {
             model.saveModel(model_file_name);
@@ -130,7 +130,7 @@ bool BTDTRegressorBuilder::buildModel(BTDTRegressor & model,
         
         Eigen::VectorXf cv_mean_error;
         Eigen::VectorXf cv_median_error;
-        DTUtil::meanMedianError<Eigen::VectorXf>(cv_errors, cv_mean_error, cv_median_error);
+        dt::meanMedianError<Eigen::VectorXf>(cv_errors, cv_mean_error, cv_median_error);
         cout<<"cross validation mean error: "<<cv_mean_error.transpose()<<"\n median error: "<<cv_median_error.transpose()<< "from 10 images.\n";
     }
     
