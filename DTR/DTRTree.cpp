@@ -9,7 +9,7 @@
 #include "DTRTree.h"
 #include "DTRNode.h"
 #include "DTRUtil.h"
-#include "DTCUtil.h"
+#include "dt_random.hpp"
 #include <iostream>
 
 using std::cout;
@@ -63,7 +63,7 @@ static bool bestSplitDimension(const vector<VectorXd> & features,
     if (!(min_v < max_v)) {
         return false;
     }
-    vector<double> rnd_split_values = DTCUtil::generateRandomNumber(min_v, max_v, threshold_num);
+    vector<double> rnd_split_values = DTRandom::generateRandomNumber(min_v, max_v, threshold_num);
     
     bool is_split = false;
     double loss = std::numeric_limits<double>::max();

@@ -8,9 +8,11 @@
 
 #include "dt_classifier_builder.h"
 #include "dt_random.hpp"
-#include <iostream>
 #include "dt_util.hpp"
-//#include "mat_io.hpp"
+
+#include <iostream>
+#include <thread>
+#include <mutex>
 
 using std::cout;
 using std::endl;
@@ -87,6 +89,123 @@ bool DTClassifierBuilder::buildModel(DTClassifier & model,
             cout<<"Validation confusion matrix: \n"<<valid_conf<<endl;
             cout<<"Validation accuracy: \n"<<accuracy.transpose()<<endl;
         }
+    }
+    return true;
+}
+
+
+void trainTreeHelper(DTCTree* tree,
+                     const vector<VectorXf> & features,
+                     const vector<int> & labels,
+                     const vector<int> & indices,
+                     const DTCTreeParameter & param)
+{
+    tree->buildTree(features, labels, indices, param);
+}
+
+bool DTClassifierBuilder::buildModel(DTClassifier & model,
+                                     const vector<VectorXf> & features,
+                                     const vector<int> & labels,
+                                     const vector<VectorXf> & valid_features,
+                                     const vector<int>& valid_labels,
+                                     const int thread_num,
+                                     const char * model_file_name) const
+{
+    assert(features.size() == labels.size());
+    assert(valid_features.size() == valid_labels.size());
+    assert(thread_num >= 1 && thread_num <= 8);
+    
+    model.tree_param_ = tree_param_;
+    model.trees_.clear();
+    const int tree_num = tree_param_.tree_num_;
+    const int category_num = tree_param_.category_num_;
+    const bool is_balance = tree_param_.balanced_example_;
+    const int N = (int)features.size();
+    
+    
+    DTRandom rng;
+    vector<vector<int>> training_indices(tree_num);
+    vector<vector<int>> validation_indices(tree_num);
+    for (int n = 0; n<tree_num; n++) {
+        // bagging
+        rng.outofBagSample<int>(N, training_indices[n], validation_indices[n]);
+        
+        // balance labels
+        if (is_balance) {
+            vector<int> balanced_indices = dt::balanceSamples<int>(training_indices[n], labels, category_num);
+            printf("balanced example vs unbalanced example ratio: %lf\n", 1.0*balanced_indices.size()/training_indices.size());
+            training_indices[n] = balanced_indices;
+        }
+        DTCTree * tree = new DTCTree();
+        assert(tree);
+        model.trees_.push_back(tree);
+    }
+    
+    int block_num = tree_num/thread_num;
+    int res_num = tree_num - block_num * thread_num;
+    
+    time_t train_start;
+    time_t train_end;
+    time(&train_start);
+    // build tree in each block
+    for (int i = 0; i<block_num; i++) {
+        std::vector<std::thread> th;
+        for (int j = 0; j<thread_num; j++) {
+            int k = i * thread_num + j;
+            th.push_back(std::thread(trainTreeHelper, model.trees_[k], features, labels, training_indices[k], tree_param_));
+        }
+        for (auto &t: th) {
+            t.join();
+        }
+    }
+    
+    // build the rest trees
+    std::vector<std::thread> th;
+    for (int i = 0; i<res_num; i++) {
+        int k = block_num * thread_num + i;
+        th.push_back(std::thread(trainTreeHelper, model.trees_[k], features, labels, training_indices[k], tree_param_));
+    }
+    for (auto &t: th) {
+        t.join();
+    }
+    time(&train_end);
+    
+    printf("thread number is %d.\n", thread_num);
+    std::cout<<"training takes: "<<difftime(train_end, train_start) << " seconds." << std::endl;
+    
+    // save and validation
+    if (model_file_name != NULL) {
+        model.save(model_file_name);
+    }
+    
+    for (int n = 0; n < tree_num; n++) {
+         // test on the validation data
+         vector<int> cv_predictions;
+         vector<int> cv_labels;
+         for (int i = 0; i<validation_indices[n].size(); i++) {
+             const int index = validation_indices[n][i];
+             int pred = 0;;
+             model.predict(features[index], pred);
+             cv_predictions.push_back(pred);
+             cv_labels.push_back(labels[index]);
+         }
+         
+         Eigen::MatrixXd oob_conf = DTUtil::confusionMatrix(cv_predictions, cv_labels, category_num, false);
+         cout<<"Out of bag validation confusion matrix: \n"<<oob_conf<<endl;
+        
+         if (valid_features.size() != 0) {
+             vector<int> valid_predictions;
+             for (int i = 0; i<valid_features.size(); i++) {
+                 int pred = 0;
+                 model.predict(valid_features[i], pred);
+                 valid_predictions.push_back(pred);
+             }
+             assert(valid_predictions.size() == valid_labels.size());
+             Eigen::MatrixXd valid_conf = DTUtil::confusionMatrix<int>(valid_predictions, valid_labels, category_num, false);
+             Eigen::VectorXd accuracy = DTUtil::accuracyFromConfusionMatrix(valid_conf);
+             cout<<"Validation confusion matrix: \n"<<valid_conf<<endl;
+             cout<<"Validation accuracy: \n"<<accuracy.transpose()<<endl;
+         }
     }
     return true;
 }

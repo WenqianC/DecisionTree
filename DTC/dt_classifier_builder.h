@@ -32,6 +32,15 @@ public:
                     const vector<int>& validation_labels,
                     const char * model_file_name = NULL) const;
     
+    // multiple thread version
+    bool buildModel(DTClassifier & model,
+                      const vector<VectorXf> & features,
+                      const vector<int> & labels,
+                      const vector<VectorXf> & validation_features,
+                      const vector<int>& validation_labels,
+                      const int thread_num = 2,
+                      const char * model_file_name = NULL) const;
+    
     //features: a group of features, each group is from a single image
     //labels  : corresponding label
     bool buildModel(DTClassifier & model,

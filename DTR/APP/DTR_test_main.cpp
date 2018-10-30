@@ -6,15 +6,14 @@
 //  Copyright (c) 2016 Nowhere Planet. All rights reserved.
 //
 
+#if 0
 #include <iostream>
 #include "DTRegressor.h"
 #include "DTRegressorBuilder.h"
-#include "DTCUtil.h"
 #include "dt_util_io.hpp"
 
 using namespace std;
 
-#if 0
 static void help()
 {
     printf("program    modelFile featureFile labelFile saveFile\n");
