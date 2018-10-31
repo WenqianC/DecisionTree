@@ -7,9 +7,9 @@
 //
 
 #include "dtc_tree.h"
+#include "dt_util.hpp"
 #include <algorithm>
 #include <iostream>
-#include "dt_util.hpp"
 
 using std::cout;
 using std::endl;

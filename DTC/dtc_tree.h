@@ -39,7 +39,7 @@ class DTCTree
         
         SplitParameter split_param_;  // split parameter
         int sample_num_;
-        double sample_percentage_;    // sample percentage of parent node
+        float sample_percentage_;    // sample percentage of parent node
         
         VectorXf prob_;  // label probability, leaf node
    
@@ -126,6 +126,7 @@ private:
                  Eigen::VectorXf & prob) const;
     
     
+    // get training example in the leaf node for the given validataion feature
     bool analyzePredictionImpl(const NodePtr node,
                                const vector<Eigen::VectorXf> & train_features,                               
                                const vector<int> & train_indices,

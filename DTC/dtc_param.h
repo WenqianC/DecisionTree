@@ -25,13 +25,13 @@ class DTCTreeParameter
 {
 public:
     int tree_num_;               // number of trees
-    int max_depth_;
-    int min_leaf_node_num_;
+    int max_depth_;              // tree depth
+    int min_leaf_node_num_;      // number of examples in leaf
     int min_split_num_;          // prevent too small node
     int split_candidate_num_;    // number of split in [v_min, v_max]
     
     int feature_dimension_;      // feature dimension
-    int category_num_;           // category number
+    int category_num_;           // category (class) number
     
     bool balanced_example_;      // balanced training example
     bool verbose_leaf_;
