@@ -8,86 +8,66 @@
 
 #if 1
 
-#include <iostream>
+
 #include "dt_classifier.h"
 #include "dt_classifier_builder.h"
 #include "dt_util_io.hpp"
+#include <iostream>
 #include <Eigen/Dense>
-#include "mat_io.hpp"
 
 using Eigen::MatrixXf;
 using Eigen::MatrixXi;
 
-static void help()
-{
-    printf("program    featureFile labelFile DTParamFile threadNum saveFile\n");
-    printf("DTC_train  feature.mat label.mat param.txt   2         dt_model.txt\n");
-    printf("feature file: .mat file has a 'feature' variable. \n");
-    printf("label file:   .mat file has a 'label' variable. \n");
-    printf("mutiple thread version.");
-}
-
-static void readDataset(const char *feature_file,
-                                            const char *label_file,
-                                            vector<Eigen::VectorXf> & features,
-                                            vector<int> & labels)
-{
-    Eigen::MatrixXf mat_features;
-    Eigen::MatrixXi mat_labels;
-    matio::readMatrix(feature_file, "feature", mat_features);
-    matio::readMatrix(label_file, "label", mat_labels);
-    assert(mat_labels.cols() == 1);
-    
-    for (int i = 0; i < mat_features.rows(); i++) {
-        Eigen::VectorXf feat = mat_features.row(i);
-        int label = mat_labels(i, 0);
+extern "C" {
+    void dtc_train(const void* input_feature,
+                   const void* input_label,
+                   int rows, int cols,
+                   const char* param_file,
+                   const char* save_file)
+    {
+       
         
-        features.push_back(feat);
-        labels.push_back(label);
-    }
-    assert(features.size() == labels.size());
-    printf("read %lu train examples\n", features.size());
+        // read training data
+        vector<VectorXf> features;
+        vector<int> labels;
+        
+        Eigen::VectorXf feat(cols);
+        const double* p_feature = (double*) input_feature;
+        const double* p_label = (double*) input_label;
+        for (int i = 0; i<rows; i++) {
+            for (int j = 0; j<cols; j++) {
+                feat[j] = p_feature[i*cols + j];
+            }
+            int label = p_label[i];
+            features.push_back(feat);
+            labels.push_back(label);
+        }
+        assert(features.size() == labels.size());
+        printf("read %lu train examples\n", features.size());
+        
+        
+        vector<VectorXf> valid_features;
+        vector<int>      valid_labels;
+        
+        printf("tree parameter file name %s\n", param_file);
+        printf("save file name %s\n", save_file);
+        
+        DTCTreeParameter tree_param;
+        bool is_read = tree_param.readFromFile(param_file);
+        assert(is_read);
+        tree_param.feature_dimension_ = (int)features[0].size();
+        const int thread_num = 4;
+        
+        DTClassifierBuilder builder;
+        builder.setTreeParameter(tree_param);
+        
+        DTClassifier model;
+        builder.buildModel(model, features, labels, valid_features, valid_labels, thread_num, save_file);
+        
+        model.save(save_file);
+        printf("save model to %s\n", save_file);
+    }    
 }
 
-
-int main(int argc, const char * argv[])
-{
-    if (argc != 6) {
-        printf("argc is %d, should be 6.\n", argc);
-        help();
-        return -1;
-    }
-    
-    const char *feature_file = argv[1];
-    const char *label_file = argv[2];
-    const char *tree_param_file = argv[3];
-    const int thread_num = std::stoi(argv[4]);
-    const char *save_file = argv[5];
-    
-    // read frame number, feature, label
-    vector<VectorXf> features;
-    vector<int> labels;
-    vector<VectorXf> valid_features;
-    vector<int>      valid_labels;
-    readDataset(feature_file, label_file, features, labels);
-    
-   
-    DTCTreeParameter tree_param;
-    bool is_read = tree_param.readFromFile(tree_param_file);
-    assert(is_read);
-    
-    tree_param.feature_dimension_ = (int)features[0].size();
-    
-    DTClassifierBuilder builder;
-    builder.setTreeParameter(tree_param);
-    
-    DTClassifier model;
-    builder.buildModel(model, features, labels, valid_features, valid_labels, thread_num, save_file);
-    
-    model.save(save_file);
-    printf("save model to %s\n", save_file);
-    
-    return 0;
-}
 #endif
 

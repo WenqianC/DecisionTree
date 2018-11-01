@@ -39,7 +39,7 @@ namespace dt {
         float_values_.clear();
         while (1) {
             char symbol = 't';
-            int ret_num = fscanf(pf, "%c", &symbol);
+            int ret_num = fscanf(pf, "%c", &symbol);            
             assert(ret_num == 1);
             // end of file
             if (symbol == 'E') {
