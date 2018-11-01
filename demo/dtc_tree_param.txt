@@ -1,0 +1,11 @@
+I verbose 1 0
+I balanced_example 1 0
+I feature_dimension 1 32
+I max_depth 1 20
+I split_candidate_num 1 5
+I min_split_num 1 10
+I category_num 1 5
+I min_leaf_node_num 1 8
+I tree_num 1 8
+I verbose_leaf 1 0
+E 
