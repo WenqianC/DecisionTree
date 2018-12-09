@@ -17,6 +17,7 @@ extern "C" {
 #endif  // closing brace for extern "C"
 
 using Eigen::Matrix;
+using std::string;
 
 namespace matio {
     
@@ -100,6 +101,62 @@ namespace matio {
         if (is_read && verbose) {
             printf("read a %ld x %ld matrix named %s. \n", mat_data.rows(), mat_data.cols(), var_name);
         }
+        return is_read;
+    }
+    
+    bool readString(const char *file_name, const char *var_name, std::string& output_data, bool verbose)
+    {
+        assert(file_name);
+        assert(var_name);
+        
+        mat_t    *matfp = NULL;
+        matvar_t *matvar = NULL;
+        bool is_read = false;
+        
+        matfp = Mat_Open(file_name, MAT_ACC_RDONLY);
+        if ( NULL == matfp ) {
+            printf("Error: opening MAT file \"%s\"!\n", file_name);
+            return false;
+        }
+        matvar = Mat_VarRead(matfp, var_name);
+        if ( NULL == matvar ) {
+            printf("Error: Variable %s not found, or error reading MAT file",
+                   var_name);
+        }
+        if (matvar->class_type != MAT_C_CHAR) {
+            printf("Error: Variable %s is not a char array!\n", var_name);
+        }
+        else {
+            // string is 1 x N array
+            size_t rows = matvar->dims[0];
+            size_t cols = matvar->dims[1];
+            void *data = matvar->data;
+            assert(data);
+            assert(rows == 1);
+            assert(matvar->data_type == MAT_T_UTF8 ||
+                   matvar->data_type == MAT_T_UINT8); // why MAT_T_UINT8?
+            
+            char *pdata = (char*)data;
+            output_data.resize(cols);
+            for (int i = 0; i<cols; i++) {
+                output_data[i] = pdata[i];
+            }
+            is_read = true;
+        }
+        
+        // free data
+        if (matvar != NULL) {
+            Mat_VarFree(matvar);
+            matvar = NULL;
+        }
+        if (matfp != NULL) {
+            Mat_Close(matfp);
+        }
+        
+        if (is_read && verbose) {
+            printf("read a %s from named %s. \n", output_data.c_str(), var_name);
+        }
+        
         return is_read;
     }
     
@@ -198,12 +255,99 @@ namespace matio {
                 Mat_VarFree(matvar);
                 matvar = NULL;
                 is_write = true;
+                printf("write variable: %s\n", var_name[i].c_str());
             }
             if (pdata) {
                 delete []pdata;
                 pdata = NULL;
             }
         }
+        Mat_Close(matfp);
+        if (is_write) {
+            printf("write %s. \n", file_name);
+        }
+        return is_write;
+    }
+    
+    template<class matrixT>
+    bool writeStringMatrix(const char *file_name,
+                           const unordered_map<string, string>& strs,
+                           const unordered_map<string, matrixT>& mats)
+    {
+        assert(file_name);
+        assert(strs.size() > 0 || mats.size() > 0);
+        
+        mat_t    *matfp = NULL;
+        matvar_t *matvar = NULL;
+        bool is_write = false;
+        
+        // 1. open a file
+        matfp = Mat_CreateVer(file_name, NULL, MAT_FT_DEFAULT);
+        if ( NULL == matfp ) {
+            printf("Error: creating MAT file %s \n", file_name);
+            return false;
+        }
+
+        // 2. write strings
+        for (const auto& item: strs) {
+            const string& name = item.first;
+            const string& data = item.second;
+            size_t dims[2] = {1, static_cast<size_t>(data.size())};
+            matvar = Mat_VarCreate(name.c_str(), MAT_C_CHAR, MAT_T_UTF8, 2, dims, (void*)data.c_str(), 0);
+            if (NULL == matvar) {
+                fprintf(stderr, "Error: creating variable for %s.\n", name.c_str());
+                is_write = false;
+                break;
+            }
+            else {
+                Mat_VarWrite(matfp,matvar,MAT_COMPRESSION_NONE);
+                Mat_VarFree(matvar);
+                matvar = NULL;
+                is_write = true;
+                printf("write variable: %s\n", name.c_str());
+            }
+        }
+        // 3. write matrix
+        for (const auto& item: mats) {
+            const string& name = item.first;
+            const matrixT& data = item.second;
+            
+            const long rows = data.rows();
+            const long cols = data.cols();
+            size_t    dims[2] = {static_cast<size_t>(rows), static_cast<size_t>(cols)};
+            double* pdata = new double[rows * cols];
+            assert(pdata);
+            
+            // colum wise copy data
+            for (int r = 0; r<rows; r++) {
+                for (int c = 0; c<cols; c++) {
+                    pdata[c*rows + r] = data(r, c);
+                }
+            }
+            
+            matvar = Mat_VarCreate(name.c_str(), MAT_C_DOUBLE, MAT_T_DOUBLE, 2, dims, (void*)pdata, 0);
+            if ( NULL == matvar ) {
+                fprintf(stderr, "Error: creating variable for %s.\n", name.c_str());
+                is_write = false;
+                if (pdata) {
+                    delete []pdata;
+                    pdata = NULL;
+                }
+                break;
+            } else {
+                Mat_VarWrite(matfp,matvar,MAT_COMPRESSION_NONE);
+                Mat_VarFree(matvar);
+                matvar = NULL;
+                is_write = true;
+                printf("write variable: %s\n", name.c_str());
+            }
+            if (pdata) {
+                delete []pdata;
+                pdata = NULL;
+            }
+        }
+        
+        // 4. close file and release data
         Mat_Close(matfp);
         if (is_write) {
             printf("write %s. \n", file_name);
@@ -235,6 +379,16 @@ namespace matio {
     bool writeMultipleMatrix(const char *file_name,
                              const std::vector<std::string>& var_name,
                              const std::vector<Eigen::MatrixXf>& data);
+    
+    template
+    bool writeStringMatrix(const char *file_name,
+                           const unordered_map<string, string>& strs,
+                           const unordered_map<string, Eigen::MatrixXd>& mats);
+    
+    template
+    bool writeStringMatrix(const char *file_name,
+                           const unordered_map<string, string>& strs,
+                           const unordered_map<string, Eigen::MatrixXf>& mats);
     
     
     

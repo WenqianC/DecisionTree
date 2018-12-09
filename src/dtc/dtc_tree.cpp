@@ -6,7 +6,7 @@
 //  Copyright (c) 2016 Nowhere Planet. All rights reserved.
 //
 
-#include "dtc_tree.h"
+#include "dtc_tree.hpp"
 #include "dt_util.hpp"
 #include <algorithm>
 #include <iostream>
